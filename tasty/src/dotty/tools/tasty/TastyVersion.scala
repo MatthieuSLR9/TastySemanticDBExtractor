@@ -27,7 +27,6 @@ case class TastyVersion private(major: Int, minor: Int, experimental: Int) {
 
 object TastyVersion {
 
-  @sharable
   private val cache: java.util.concurrent.ConcurrentHashMap[TastyVersion, TastyVersion] =
     new java.util.concurrent.ConcurrentHashMap()
 

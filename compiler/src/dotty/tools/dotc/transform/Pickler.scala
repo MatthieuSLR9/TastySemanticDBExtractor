@@ -25,6 +25,7 @@ import scala.annotation.constructorOnly
 import scala.concurrent.Promise
 import dotty.tools.dotc.transform.Pickler.writeSigFilesAsync
 
+
 import scala.util.chaining.given
 import dotty.tools.io.FileWriters.{EagerReporter, BufferingReporter}
 import dotty.tools.dotc.sbt.interfaces.IncrementalCallback
@@ -418,6 +419,74 @@ class Pickler extends Phase {
           .resolve("best-effort")
       Files.createDirectories(outpath)
       BestEffortTastyWriter.write(outpath.nn, result)
+
+
+
+    import dotty.tools.dotc.sbt.*
+    import dotty.tools.dotc.sbt.LazyTastyQueryClasspath.*
+    import tastyquery.Names as tqn
+    import tastyquery.Classpaths.*
+    import tastyquery.Classpaths.*
+    import tastyquery.Symbols.*
+    import tastyquery.Names.*
+    import tastyquery.Symbols.{ClassSymbol, TermOrTypeSymbol}
+    
+    if ctx.settings.YproduceSemanticdbUsingTasty.value then
+      val sourceroot = ctx.settings.sourceroot.value
+      val entryDebugString = sourceroot
+      val packagePrefixesAndData2 = result.head.pickled.toList.map(
+          (cls, tsty) => {
+            val internalName =
+              if (cls.is(Module)) cls.binaryClassName.stripSuffix(str.MODULE_SUFFIX).nn
+              else cls.binaryClassName
+
+            val fullyQualifiedName = internalName
+            val path = fullyQualifiedName.split('.')
+            val binaryName = path.last
+            val packagePrefix = path.dropRight(1).mkString(".")
+            val output = (packagePrefix, InMemoryTasty(fullyQualifiedName, binaryName, tsty))
+            output
+          }
+        )
+      val packagePrefixesAndData = result.flatMap(
+        _.pickled.toList.map(
+          (cls, tsty) => {
+            val internalName =
+              if (cls.is(Module)) cls.binaryClassName.stripSuffix(str.MODULE_SUFFIX).nn
+              else cls.binaryClassName
+
+            val fullyQualifiedName = internalName
+            val path = fullyQualifiedName.split('.')
+            val binaryName = path.last
+            val packagePrefix = path.dropRight(1).mkString(".")
+            val output = (packagePrefix, InMemoryTasty(fullyQualifiedName, binaryName, tsty))
+            output
+          }
+        ))
+      val packageData = packagePrefixesAndData
+      .groupBy(_._1)
+      .map(
+        (pkg, data) => {
+          val classes = data.map(_._2)
+          InMemoryPackageData(s"${entryDebugString}:${pkg}", pkg, () => classes.toList)
+        })
+      .toList
+
+      val relativePathToSource = result.map(unit => {
+        val source = unit.source
+        val relativePath =
+          val reference = ctx.settings.sourceroot.value
+          util.SourceFile.relativePath(source, reference)
+        (relativePath, source)
+      }).toMap
+      
+      
+      
+      val entry = InMemoryEntry(entryDebugString, packageData)
+      val cp = entry :: makeClasspath(using ctx)
+      val sdbExtractor = new TastyExtractSemanticDB(entry, cp, ctx)
+      sdbExtractor.writeSemanticDB()
+
     result
   }
 

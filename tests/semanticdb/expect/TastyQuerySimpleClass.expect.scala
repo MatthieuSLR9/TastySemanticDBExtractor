@@ -1,0 +1,1 @@
+class SimpleClass/*<-_empty_::SimpleClass#*/{}

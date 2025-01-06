@@ -60,6 +60,36 @@ object Scala3:
           // println(name.mangledString)
           nameInSource == name.mangledString
 
+  import dotty.tools.dotc.SDBSymbolNameBuilder
+  import dotty.tools.dotc.SDBname
+
+  sealed trait TastyFakeSymbol {
+    var sname: Option[String] = None
+  }
+  
+  case class TastyWildcardTypeSymbol(owner: tastyquery.Symbols.Symbol, bounds: tastyquery.Types.TypeBounds) extends TastyFakeSymbol
+  case class TastyTermParamRefSymbol(owner: tastyquery.Symbols.Symbol, name: tastyquery.Names.Name, tp: tastyquery.Types.Type) extends TastyFakeSymbol
+  case class TastyTypeParamRefSymbol(owner: tastyquery.Symbols.Symbol, name: tastyquery.Names.Name, tp: tastyquery.Types.TypeBounds) extends TastyFakeSymbol
+  case class TastyRefinementSymbol(owner: tastyquery.Symbols.Symbol, name: tastyquery.Names.Name, tp: tastyquery.Types.Type) extends TastyFakeSymbol
+  extension (sym: TastySemanticSymbol)
+      def name: tastyquery.Names.Name = sym match
+        case s: tastyquery.Symbols.Symbol => s.name
+        case s: TastyWildcardTypeSymbol => tastyquery.Names.SimpleName("_")
+        case s: TastyTermParamRefSymbol => s.name
+        case s: TastyTypeParamRefSymbol => s.name
+        case s: TastyRefinementSymbol => s.name
+
+      def symbolName(using tastyquery.Contexts.Context, SDBSymbolNameBuilder): String =
+        sym match
+          case s: tastyquery.Symbols.Symbol => s.SDBname
+          case s: TastyFakeSymbol =>
+            s.sname.getOrElse {
+              val sname = s.SDBname
+              s.sname = Some(sname)
+              sname
+            }
+  type TastySemanticSymbol = tastyquery.Symbols.Symbol | TastyFakeSymbol
+
   sealed trait FakeSymbol {
     private[Scala3] var sname: Option[String] = None
   }
@@ -70,7 +100,6 @@ object Scala3:
     * - SymbolInformation with signature TypeSignature of given type bound.
     */
   case class WildcardTypeSymbol(owner: Symbol, bounds: TypeBounds) extends FakeSymbol
-
   case class TermParamRefSymbol(owner: Symbol, name: Name, tp: Type) extends FakeSymbol
   case class TypeParamRefSymbol(owner: Symbol, name: Name, tp: TypeBounds) extends FakeSymbol
   case class RefinementSymbol(owner: Symbol, name: Name, tp: Type) extends FakeSymbol
