@@ -1,0 +1,3 @@
+class TastyQueryMethodComplexFormula/*<-_empty_::TastyQueryMethodComplexFormula#*/{
+        def complexFormula/*<-_empty_::TastyQueryMethodComplexFormula#complexFormula().*/(param1/*<-_empty_::TastyQueryMethodComplexFormula#complexFormula().(param1)*/:Int/*->scala::Int#*/, param2/*<-_empty_::TastyQueryMethodComplexFormula#complexFormula().(param2)*/:Int/*->scala::Int#*/) = (param1/*->_empty_::TastyQueryMethodComplexFormula#complexFormula().(param1)*/*/*->scala::Int#`*`(+3).*/param2/*->_empty_::TastyQueryMethodComplexFormula#complexFormula().(param2)*/)//*->scala::Int#`::`(+3).*/param2/*->_empty_::TastyQueryMethodComplexFormula#complexFormula().(param2)*/
+}

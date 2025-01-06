@@ -24,36 +24,9 @@ import dotty.tools.dotc.Main
 import dotty.tools.dotc.semanticdb.Scala3.given
 import dotty.tools.dotc.util.SourceFile
 
-@main def updateExpect =
-  SemanticdbTests().runExpectTest(updateExpectFiles = true)
-
-/** Useful for printing semanticdb metac output for one file
- *
- *  @param root the output directory containing semanticdb output,
- *  only 1 semanticdb file should be present
- *  @param source the single source file producing the semanticdb
- */
-@main def metac(root: String, source: String) =
-  
-  val rootSrc = Paths.get(root)
-  val sourceSrc = Paths.get(source)
-  val semanticFile = FileSystems.getDefault.getPathMatcher("glob:**.semanticdb")
-  def inputFile(): Path =
-    val ls = Files.walk(rootSrc.resolve("META-INF").resolve("semanticdb"))
-    val files =
-      try ls.filter(p => semanticFile.matches(p)).collect(Collectors.toList).asScala
-      finally ls.close()
-    require(files.sizeCompare(1) == 0, s"No semanticdb files! $rootSrc")
-    files.head
-  val metacSb: StringBuilder = StringBuilder(5000)
-  val semanticdbPath = inputFile()
-  val doc = Tools.loadTextDocumentUnsafe(sourceSrc.toAbsolutePath, semanticdbPath)
-  Tools.metac(doc, Paths.get(doc.uri))(using metacSb)
-  Files.write(rootSrc.resolve("metac.expect"), metacSb.toString.getBytes(StandardCharsets.UTF_8))
-
 
 @Category(Array(classOf[BootstrappedOnlyTests]))
-class SemanticdbTests:
+class TastySemanticdbTests:
   val javaFile = FileSystems.getDefault.getPathMatcher("glob:**.java")
   val scalaFile = FileSystems.getDefault.getPathMatcher("glob:**.scala")
   val expectFile = FileSystems.getDefault.getPathMatcher("glob:**.expect.scala")
@@ -64,7 +37,7 @@ class SemanticdbTests:
 
   @Category(Array(classOf[dotty.SlowTests]))
   @Test def expectTests: Unit = 
-    println("Running test...")
+    println("TASTY Running test...")
     if (!scala.util.Properties.isWin) runExpectTest(updateExpectFiles = false)
 
   def runExpectTest(updateExpectFiles: Boolean): Unit =
@@ -111,7 +84,6 @@ class SemanticdbTests:
     Files.walk(target).sorted(Comparator.reverseOrder).forEach(Files.delete)
     if errors.nonEmpty then
       fail(s"${errors.size} errors in expect test.")
-    println("1")
 
   def trimTrailingWhitespace(s: String): String =
     Pattern.compile(" +$", Pattern.MULTILINE).matcher(s).replaceAll("")
@@ -122,11 +94,11 @@ class SemanticdbTests:
       try ls.filter(p => scalaFile.matches(p) && !expectFile.matches(p)).collect(Collectors.toList).asScala
       finally ls.close()
     require(files.nonEmpty, s"No input files! $expectSrc")
-    files.toList
+    
     val filteredFiles = files.toList.filter { file =>
     file.getFileName.toString.startsWith("TastyQuery")}
+    println(filteredFiles.toList)
     filteredFiles
-    
 
   def javaFiles(): List[Path] =
     val ls = Files.walk(javaRoot)
@@ -135,74 +107,31 @@ class SemanticdbTests:
       finally ls.close()
     require(files.nonEmpty, s"No input files! $expectSrc")
     files.toList
-    
 
   def generateSemanticdb(): Path =
     val target = Files.createTempDirectory("semanticdb")
-    val target2= Paths.get("temporary")
-    if (Files.notExists(target2)) {
-      Files.createDirectories(target2)
-    }
-    println(s"Working directory: ${Paths.get("").toAbsolutePath}")
     val javaArgs = Array("-d", target.toString) ++ javaFiles().map(_.toString)
     val javac = ToolProvider.getSystemJavaCompiler
     val exitJava = javac.run(null, null, null, javaArgs*)
     assert(exitJava == 0, "java compiler has errors")
+    println(s"source root is : ${expectSrc.toString}")
     val args = Array(
+      "-Ysdb-using-tasty",
       "-Xsemanticdb",
       "-d", target.toString,
       "-feature",
       "-deprecation",
-      // "-Ydebug-flags",
-      // "-Xprint:extractSemanticDB",
       "-sourceroot", expectSrc.toString,
       "-classpath", target.toString,
       "-Xignore-scala2-macros",
       "-usejavacp",
       "-Wunused:all"
     ) ++ inputFiles().map(_.toString)
+    println("ARGS")
+    println(args.toList)
+    
     val exit = Main.process(args)
     assertFalse(s"dotc errors: ${exit.errorCount}", exit.hasErrors)
     target
 
-end SemanticdbTests
-
-object SemanticdbTests:
-  /** Prettyprint a text document with symbol occurrences next to each resolved identifier.
-   *
-   * Useful for testing purposes to ensure that SymbolOccurrence values make sense and are correct.
-   * Example output (NOTE, slightly modified to avoid "unclosed comment" errors):
-   * {{{
-   *   class Example *example/Example#*  {
-   *     val a *example/Example#a.* : String *scala/Predef.String#* = "1"
-   *   }
-   * }}}
-   **/
-  def printTextDocument(doc: TextDocument): String =
-    val symtab = doc.symbols.iterator.map(info => info.symbol -> info).toMap
-    val sb = StringBuilder(1000)
-    val sourceFile = SourceFile.virtual(doc.uri, doc.text)
-    var offset = 0
-    for occ <- doc.occurrences.sorted do
-      val range = occ.range.get
-      val end = math.max(
-        offset,
-        sourceFile.lineToOffset(range.endLine) + range.endCharacter
-      )
-      val isPrimaryConstructor =
-        symtab.get(occ.symbol).exists(_.isPrimary)
-      if !occ.symbol.isPackage && !isPrimaryConstructor then
-        assert(end <= doc.text.length,
-          s"doc is only ${doc.text.length} - offset=$offset, end=$end , symbol=${occ.symbol} in source ${sourceFile.name}")
-        sb.append(doc.text.substring(offset, end))
-        sb.append("/*")
-          .append(if (occ.role.isDefinition) "<-" else "->")
-          .append(occ.symbol.replace("/", "::"))
-          .append("*/")
-        offset = end
-    assert(offset <= doc.text.length, s"absurd offset = $offset when doc is length ${doc.text.length}")
-    sb.append(doc.text.substring(offset))
-    sb.toString
-  end printTextDocument
-
-end SemanticdbTests
+end TastySemanticdbTests
