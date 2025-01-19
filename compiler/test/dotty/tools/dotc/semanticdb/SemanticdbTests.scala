@@ -34,7 +34,6 @@ import dotty.tools.dotc.util.SourceFile
  *  @param source the single source file producing the semanticdb
  */
 @main def metac(root: String, source: String) =
-  
   val rootSrc = Paths.get(root)
   val sourceSrc = Paths.get(source)
   val semanticFile = FileSystems.getDefault.getPathMatcher("glob:**.semanticdb")
@@ -63,13 +62,9 @@ class SemanticdbTests:
   val metacExpectFile = rootSrc.resolve("metac.expect")
 
   @Category(Array(classOf[dotty.SlowTests]))
-  @Test def expectTests: Unit = 
-    println("Running test...")
-    if (!scala.util.Properties.isWin) runExpectTest(updateExpectFiles = false)
+  @Test def expectTests: Unit = if (!scala.util.Properties.isWin) runExpectTest(updateExpectFiles = false)
 
   def runExpectTest(updateExpectFiles: Boolean): Unit =
-
-    println("RUNNING ALL TESTS")
     val target = generateSemanticdb()
     val errors = mutable.ArrayBuffer.empty[Path]
     val metacSb: StringBuilder = StringBuilder(5000)
@@ -111,7 +106,6 @@ class SemanticdbTests:
     Files.walk(target).sorted(Comparator.reverseOrder).forEach(Files.delete)
     if errors.nonEmpty then
       fail(s"${errors.size} errors in expect test.")
-    println("1")
 
   def trimTrailingWhitespace(s: String): String =
     Pattern.compile(" +$", Pattern.MULTILINE).matcher(s).replaceAll("")
@@ -123,10 +117,6 @@ class SemanticdbTests:
       finally ls.close()
     require(files.nonEmpty, s"No input files! $expectSrc")
     files.toList
-    val filteredFiles = files.toList.filter { file =>
-    file.getFileName.toString.startsWith("TastyQuery")}
-    filteredFiles
-    
 
   def javaFiles(): List[Path] =
     val ls = Files.walk(javaRoot)
@@ -135,15 +125,9 @@ class SemanticdbTests:
       finally ls.close()
     require(files.nonEmpty, s"No input files! $expectSrc")
     files.toList
-    
 
   def generateSemanticdb(): Path =
     val target = Files.createTempDirectory("semanticdb")
-    val target2= Paths.get("temporary")
-    if (Files.notExists(target2)) {
-      Files.createDirectories(target2)
-    }
-    println(s"Working directory: ${Paths.get("").toAbsolutePath}")
     val javaArgs = Array("-d", target.toString) ++ javaFiles().map(_.toString)
     val javac = ToolProvider.getSystemJavaCompiler
     val exitJava = javac.run(null, null, null, javaArgs*)

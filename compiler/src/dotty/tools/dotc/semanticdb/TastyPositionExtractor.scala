@@ -10,18 +10,36 @@ class TastyPositionExtractor(sourceFilePath: String):
     }
     else {
       val source = Source.fromFile(sourceFilePath)
-      val text = source.getLines.zipWithIndex.collectFirst { case (line, idx) if idx == span.startLine  => line }.get
-      val startColumn = text.indexOf(name, span.startColumn)
-      if startColumn < 0 then {
-        new dotty.tools.dotc.semanticdb.Range(span.startLine,span.startColumn,span.startLine, span.startColumn)
+      
+      source.getLines.zipWithIndex.collectFirst { case (line, idx) if idx == span.startLine  => line } match
+        case None => 
+          val source2 = Source.fromFile(sourceFilePath)
+          println(source2.getLines().foreach(println))
+          source2.close()
+          println(sourceFilePath)
+          println(source.getLines().map(println(_)).toString())
+          println(span.sourceFile.name)
+          println(name)
+          println("Very weird case")
+          source.close()
+          new dotty.tools.dotc.semanticdb.Range(span.startLine,span.startColumn,span.endLine, span.endColumn)
+        case Some(value) =>
+          
+      
+          val startColumn = value.indexOf(name, span.startColumn)
+          if startColumn < 0 then {
+            source.close()
+            new dotty.tools.dotc.semanticdb.Range(span.startLine,span.startColumn,span.startLine, span.startColumn)
+            
 
-      }
-      else {
-        val endColumn = startColumn + name.size
-        val selectedLines = source.slice(span.startLine, span.startLine)
-        val sourceString = source.mkString
-        val range = new dotty.tools.dotc.semanticdb.Range(span.startLine,startColumn,span.startLine, endColumn)
-        range
+          }
+          else {
+            val endColumn = startColumn + name.size
+            val selectedLines = source.slice(span.startLine, span.startLine)
+            val sourceString = source.mkString
+            source.close()
+            new dotty.tools.dotc.semanticdb.Range(span.startLine,startColumn,span.startLine, endColumn)
+            
 
-      }
+          }
     }
