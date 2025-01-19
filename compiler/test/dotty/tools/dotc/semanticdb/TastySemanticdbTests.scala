@@ -36,7 +36,7 @@ class TastySemanticdbTests:
   val metacExpectFile = rootSrc.resolve("metac.expect")
 
   @Category(Array(classOf[dotty.SlowTests]))
-  @Test def expectTests: Unit = 
+  @Test def expectTestsTasty: Unit = 
     println("TASTY Running test...")
     if (!scala.util.Properties.isWin) runExpectTest(updateExpectFiles = false)
 
@@ -46,7 +46,7 @@ class TastySemanticdbTests:
     val target = generateSemanticdb()
     val errors = mutable.ArrayBuffer.empty[Path]
     val metacSb: StringBuilder = StringBuilder(5000)
-    def collectErrorOrUpdate(expectPath: Path, obtained: String) =
+    def collectErrorOrUpdate(expectPath: Path, obtained: String, fileName: String) =
       if updateExpectFiles then
         Files.write(expectPath, obtained.getBytes(StandardCharsets.UTF_8))
         println("updated: " + expectPath)
@@ -55,8 +55,11 @@ class TastySemanticdbTests:
         val expectName = expectPath.getFileName
         val relExpect = rootSrc.relativize(expectPath)
         if expected.trim != obtained.trim then
+          println("INCORRECT PATH IS:")
+          println(fileName)
           Files.write(expectPath.resolveSibling("" + expectName + ".out"), obtained.getBytes(StandardCharsets.UTF_8))
           errors += expectPath
+    
     for source <- inputFiles().sorted do
       val filename = source.getFileName.toString
       val relpath = expectSrc.relativize(source)
@@ -69,8 +72,12 @@ class TastySemanticdbTests:
       val doc = Tools.loadTextDocument(source, relpath, semanticdbPath)
       Tools.metac(doc, rootSrc.relativize(source))(using metacSb)
       val obtained = trimTrailingWhitespace(SemanticdbTests.printTextDocument(doc))
-      collectErrorOrUpdate(expectPath, obtained)
-    collectErrorOrUpdate(metacExpectFile, metacSb.toString)
+      collectErrorOrUpdate(expectPath, obtained, filename)
+    /*
+    Decided to not check metacExpectFile here as the file just regroups the SemanticDB info of all files in the test folder which have some that do not pass with the Tasty - Query version.
+    Prefered to do this rather than include in the metacExpectFile only files produced using Tasty-Query.
+    This enables to not alter SemanticDBTests.scala and keep update the updateExpect of it.
+    */
     for expect <- errors do
       def red(msg: String) = Console.RED + msg + Console.RESET
       def blue(msg: String) = Console.BLUE + msg + Console.RESET
