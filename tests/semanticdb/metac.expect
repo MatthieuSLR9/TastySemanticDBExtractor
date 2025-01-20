@@ -3893,6 +3893,61 @@ Occurrences:
 [1:4..1:4): <- _empty_/ByNameMethod#`<init>`().
 [1:8..1:9): x <- _empty_/ByNameMethod#x().
 
+expect/TastyQueryClassDifficultNames.scala
+------------------------------------------
+
+Summary:
+Schema => SemanticDB v4
+Uri => TastyQueryClassDifficultNames.scala
+Text => empty
+Language => Scala
+Symbols => 17 entries
+Occurrences => 18 entries
+Diagnostics => 2 entries
+
+Symbols:
+_empty_/TastyQueryClassDifficultNames# => class TastyQueryClassDifficultNames extends Object { self: TastyQueryClassDifficultNames => +7 decls }
+_empty_/TastyQueryClassDifficultNames#`<init>`(). => primary ctor <init> (): TastyQueryClassDifficultNames
+_empty_/TastyQueryClassDifficultNames#c# => class c extends Object { self: c => +3 decls }
+_empty_/TastyQueryClassDifficultNames#c#`<init>`(). => primary ctor <init> (param c: Any): c
+_empty_/TastyQueryClassDifficultNames#c#`<init>`().(c) => param c: Any
+_empty_/TastyQueryClassDifficultNames#c#c# => class c extends Object { self: c => +3 decls }
+_empty_/TastyQueryClassDifficultNames#c#c#`<init>`(). => primary ctor <init> (param c: Any): c
+_empty_/TastyQueryClassDifficultNames#c#c#`<init>`().(c) => param c: Any
+_empty_/TastyQueryClassDifficultNames#c#c#c# => class c extends Object { self: c => +1 decls }
+_empty_/TastyQueryClassDifficultNames#c#c#c#`<init>`(). => primary ctor <init> (): c
+_empty_/TastyQueryClassDifficultNames#c#c#c. => private[this] val method c Any
+_empty_/TastyQueryClassDifficultNames#c#c. => private[this] val method c Any
+_empty_/TastyQueryClassDifficultNames#t# => class t extends Object { self: t => +3 decls }
+_empty_/TastyQueryClassDifficultNames#t#`<init>`(). => primary ctor <init> (param t: Double): t
+_empty_/TastyQueryClassDifficultNames#t#`<init>`().(t) => param t: Double
+_empty_/TastyQueryClassDifficultNames#t#t. => private[this] val method t Double
+_empty_/TastyQueryClassDifficultNames#t#tt. => val method tt Double
+
+Occurrences:
+[1:6..1:35): TastyQueryClassDifficultNames <- _empty_/TastyQueryClassDifficultNames#
+[2:4..2:4): <- _empty_/TastyQueryClassDifficultNames#`<init>`().
+[2:10..2:11): t <- _empty_/TastyQueryClassDifficultNames#t#
+[2:11..2:11): <- _empty_/TastyQueryClassDifficultNames#t#`<init>`().
+[2:12..2:13): t <- _empty_/TastyQueryClassDifficultNames#t#t.
+[2:15..2:21): Double -> scala/Double#
+[2:27..2:29): tt <- _empty_/TastyQueryClassDifficultNames#t#tt.
+[2:32..2:33): t -> _empty_/TastyQueryClassDifficultNames#t#t.
+[5:10..5:11): c <- _empty_/TastyQueryClassDifficultNames#c#
+[5:11..5:11): <- _empty_/TastyQueryClassDifficultNames#c#`<init>`().
+[5:13..5:14): c <- _empty_/TastyQueryClassDifficultNames#c#c.
+[5:16..5:19): Any -> scala/Any#
+[5:27..5:28): c <- _empty_/TastyQueryClassDifficultNames#c#c#
+[5:28..5:28): <- _empty_/TastyQueryClassDifficultNames#c#c#`<init>`().
+[5:29..5:30): c <- _empty_/TastyQueryClassDifficultNames#c#c#c.
+[5:33..5:36): Any -> scala/Any#
+[5:38..5:38): <- _empty_/TastyQueryClassDifficultNames#c#c#c#`<init>`().
+[5:44..5:45): c <- _empty_/TastyQueryClassDifficultNames#c#c#c#
+
+Diagnostics:
+[5:13..5:14): [warning] unused explicit parameter
+[5:29..5:30): [warning] unused explicit parameter
+
 expect/TastyQueryMatching.scala
 -------------------------------
 
@@ -3978,6 +4033,51 @@ Occurrences:
 [1:61..1:67): param2 -> _empty_/TastyQueryMethodComplexFormula#complexFormula().(param2)
 [1:68..1:69): / -> scala/Int#`/`(+3).
 [1:69..1:75): param2 -> _empty_/TastyQueryMethodComplexFormula#complexFormula().(param2)
+
+expect/TastyQueryMethodDifficultNames.scala
+-------------------------------------------
+
+Summary:
+Schema => SemanticDB v4
+Uri => TastyQueryMethodDifficultNames.scala
+Text => empty
+Language => Scala
+Symbols => 9 entries
+Occurrences => 16 entries
+Diagnostics => 2 entries
+
+Symbols:
+_empty_/MethodWithDifficultName# => class MethodWithDifficultName extends Object { self: MethodWithDifficultName => +3 decls }
+_empty_/MethodWithDifficultName#`<init>`(). => primary ctor <init> (): MethodWithDifficultName
+_empty_/MethodWithDifficultName#e(). => method e (val local e: Boolean): Unit
+_empty_/MethodWithDifficultName#e().(e) => param e: Boolean
+_empty_/MethodWithDifficultName#methodDifficultName(). => method methodDifficultName (param z: Int, param y: String): Unit
+_empty_/MethodWithDifficultName#methodDifficultName().(y) => param y: String
+_empty_/MethodWithDifficultName#methodDifficultName().(z) => param z: Int
+local0 => val local e: Boolean
+local1 => val local methodDifficultName: Int
+
+Occurrences:
+[1:6..1:29): MethodWithDifficultName <- _empty_/MethodWithDifficultName#
+[3:4..3:4): <- _empty_/MethodWithDifficultName#`<init>`().
+[3:8..3:9): e <- _empty_/MethodWithDifficultName#e().
+[3:10..3:11): e <- _empty_/MethodWithDifficultName#e().(e)
+[3:13..3:20): Boolean -> scala/Boolean#
+[3:29..3:30): e <- local0
+[3:32..3:39): Boolean -> scala/Boolean#
+[3:46..3:48): == -> scala/Any#`==`().
+[3:53..3:55): && -> scala/Boolean#`&&`().
+[3:61..3:63): == -> scala/Boolean#`==`().
+[4:8..4:27): methodDifficultName <- _empty_/MethodWithDifficultName#methodDifficultName().
+[4:28..4:29): z <- _empty_/MethodWithDifficultName#methodDifficultName().(z)
+[4:31..4:34): Int -> scala/Int#
+[4:36..4:37): y <- _empty_/MethodWithDifficultName#methodDifficultName().(y)
+[4:39..4:45): String -> scala/Predef.String#
+[4:54..4:73): methodDifficultName <- local1
+
+Diagnostics:
+[3:29..3:30): [warning] unused local definition
+[4:54..4:73): [warning] unused local definition
 
 expect/TastyQueryMethodWithParam.scala
 --------------------------------------
@@ -4093,6 +4193,33 @@ Occurrences:
 [7:21..7:22): ^ -> scala/Int#`^`(+3).
 [7:23..7:35): intermidiate -> local0
 
+expect/TastyQueryMethodWithParams2.scala
+----------------------------------------
+
+Summary:
+Schema => SemanticDB v4
+Uri => TastyQueryMethodWithParams2.scala
+Text => empty
+Language => Scala
+Symbols => 4 entries
+Occurrences => 4 entries
+Diagnostics => 1 entries
+
+Symbols:
+_empty_/MethodWithParamMultiply2# => class MethodWithParamMultiply2 extends Object { self: MethodWithParamMultiply2 => +2 decls }
+_empty_/MethodWithParamMultiply2#`<init>`(). => primary ctor <init> (): MethodWithParamMultiply2
+_empty_/MethodWithParamMultiply2#complexFormula(). => method complexFormula (): Unit
+local0 => val local intermidiate: Int
+
+Occurrences:
+[0:6..0:30): MethodWithParamMultiply2 <- _empty_/MethodWithParamMultiply2#
+[1:4..1:4): <- _empty_/MethodWithParamMultiply2#`<init>`().
+[1:8..1:22): complexFormula <- _empty_/MethodWithParamMultiply2#complexFormula().
+[2:12..2:24): intermidiate <- local0
+
+Diagnostics:
+[2:12..2:24): [warning] unused local definition
+
 expect/TastyQuerySimpleClass.scala
 ----------------------------------
 
@@ -4111,6 +4238,74 @@ _empty_/SimpleClass#`<init>`(). => primary ctor <init> (): SimpleClass
 Occurrences:
 [0:0..0:0): <- _empty_/SimpleClass#`<init>`().
 [0:6..0:17): SimpleClass <- _empty_/SimpleClass#
+
+expect/TastyQuerySimpleMethod.scala
+-----------------------------------
+
+Summary:
+Schema => SemanticDB v4
+Uri => TastyQuerySimpleMethod.scala
+Text => empty
+Language => Scala
+Symbols => 4 entries
+Occurrences => 6 entries
+
+Symbols:
+_empty_/TastyQuerySimpleMethod# => class TastyQuerySimpleMethod extends Object { self: TastyQuerySimpleMethod => +2 decls }
+_empty_/TastyQuerySimpleMethod#`<init>`(). => primary ctor <init> (): TastyQuerySimpleMethod
+_empty_/TastyQuerySimpleMethod#simpleMethod(). => method simpleMethod (param x: Int): Int
+_empty_/TastyQuerySimpleMethod#simpleMethod().(x) => param x: Int
+
+Occurrences:
+[0:6..0:28): TastyQuerySimpleMethod <- _empty_/TastyQuerySimpleMethod#
+[1:4..1:4): <- _empty_/TastyQuerySimpleMethod#`<init>`().
+[1:8..1:20): simpleMethod <- _empty_/TastyQuerySimpleMethod#simpleMethod().
+[1:21..1:22): x <- _empty_/TastyQuerySimpleMethod#simpleMethod().(x)
+[1:24..1:27): Int -> scala/Int#
+[1:31..1:32): x -> _empty_/TastyQuerySimpleMethod#simpleMethod().(x)
+
+expect/TastyQueryValDifficultNames.scala
+----------------------------------------
+
+Summary:
+Schema => SemanticDB v4
+Uri => TastyQueryValDifficultNames.scala
+Text => empty
+Language => Scala
+Symbols => 8 entries
+Occurrences => 20 entries
+
+Symbols:
+_empty_/TastyQueryValDifficultNames# => class TastyQueryValDifficultNames extends Object { self: TastyQueryValDifficultNames => +6 decls }
+_empty_/TastyQueryValDifficultNames#`<init>`(). => primary ctor <init> (): TastyQueryValDifficultNames
+_empty_/TastyQueryValDifficultNames#a. => val method a String
+_empty_/TastyQueryValDifficultNames#aa. => val method aa String
+_empty_/TastyQueryValDifficultNames#g. => val method g String
+_empty_/TastyQueryValDifficultNames#i. => val method i String
+_empty_/TastyQueryValDifficultNames#isEqualTrimmed. => val method isEqualTrimmed Boolean
+local0 => val local i: String
+
+Occurrences:
+[1:6..1:33): TastyQueryValDifficultNames <- _empty_/TastyQueryValDifficultNames#
+[2:4..2:4): <- _empty_/TastyQueryValDifficultNames#`<init>`().
+[2:8..2:9): g <- _empty_/TastyQueryValDifficultNames#g.
+[2:11..2:17): String -> scala/Predef.String#
+[2:20..2:21): g -> _empty_/TastyQueryValDifficultNames#g.
+[3:8..3:9): i <- _empty_/TastyQueryValDifficultNames#i.
+[3:11..3:17): String -> scala/Predef.String#
+[3:20..3:21): i -> _empty_/TastyQueryValDifficultNames#i.
+[3:35..3:36): i <- local0
+[3:38..3:44): String -> scala/Predef.String#
+[3:48..3:49): i -> local0
+[3:50..3:51): + -> java/lang/String#`+`().
+[3:67..3:68): i -> _empty_/TastyQueryValDifficultNames#i.
+[4:8..4:9): a <- _empty_/TastyQueryValDifficultNames#a.
+[4:23..4:25): aa <- _empty_/TastyQueryValDifficultNames#aa.
+[4:38..4:52): isEqualTrimmed <- _empty_/TastyQueryValDifficultNames#isEqualTrimmed.
+[4:55..4:56): a -> _empty_/TastyQueryValDifficultNames#a.
+[4:57..4:61): trim -> java/lang/String#trim().
+[4:62..4:64): == -> scala/Any#`==`().
+[4:65..4:67): aa -> _empty_/TastyQueryValDifficultNames#aa.
 
 expect/TastyQueryVariousFeatures.scala
 --------------------------------------

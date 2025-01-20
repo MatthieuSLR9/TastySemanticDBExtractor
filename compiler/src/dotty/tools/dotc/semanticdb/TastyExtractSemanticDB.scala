@@ -308,7 +308,7 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
 
   private def registerOccurrence(symbol: Symbol, span: SourcePosition, role: SymbolOccurrence.Role)(using Context, SDBSymbolNameBuilder): Unit =
     val range = if span.isUnknown then None else
-      val result = extractor.extract(symbol.name.toString(), span)
+      val result = extractor.extract(symbol.name.toString(), span, symbol)
       Some(result)
 
     val occ = SymbolOccurrence(range, symbol.SDBname, role)
@@ -319,7 +319,7 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
 
   private def registerOccurrence(symbol: Symbol, symbolName: String, span: SourcePosition, role: SymbolOccurrence.Role)(using Context, SDBSymbolNameBuilder): Unit =
     val range = if span.isUnknown then None else
-      val result = extractor.extract(symbolName, span)
+      val result = extractor.extract(symbolName, span, symbol)
       Some(result)
     
     val occ = SymbolOccurrence(range, symbolName, role)
@@ -343,10 +343,10 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
             namedTree match
               case Left(listValDef) =>
                 listValDef.foreach(namedTree =>
-
+                  
                   registerSymbolSimple(namedTree.symbol)(using ctx, sdbStringBuilder)
                   if (!defDef.symbol.isConstructor){
-                    registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+                    registerOccurrence(namedTree.symbol, namedTree.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
                   }
                   super.traverse(namedTree)
                 )
@@ -356,7 +356,7 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
                   
                   if (!defDef.symbol.isConstructor){
                     registerSymbolSimple(namedTree.symbol)(using ctx, sdbStringBuilder)
-                    registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+                    registerOccurrence(namedTree.symbol, namedTree.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
                   }
                   super.traverse(namedTree)
                 )
@@ -393,18 +393,19 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
           super.traverse(tree)
 
       case ident: Ident=> 
-          registerOccurrence(ident.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
+          
+          registerOccurrence(ident.symbol, ident.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
           super.traverse(tree)
       
       case select : Select =>
-          registerOccurrence(select.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
+          registerOccurrence(select.symbol, select.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
           super.traverse(tree)
       case apply: Apply =>
         apply.fun match
           case ident: Ident =>
             ident.symbol match
               case termSymbol: TermSymbol => 
-                registerOccurrence(termSymbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
+                registerOccurrence(termSymbol, ident.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
               case _ =>
             super.traverse(tree)
           case _ => super.traverse(tree)
