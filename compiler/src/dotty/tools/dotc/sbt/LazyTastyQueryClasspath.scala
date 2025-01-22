@@ -75,7 +75,7 @@ object LazyTastyQueryClasspath:
 
   def patchBytes(bytes: Array[Byte]): IArray[Byte] =
     bytes(4) = (28 | 0x80).toByte // major version
-    bytes(5) = (4 | 0x80).toByte // minor version
+    bytes(5) = (5 | 0x80).toByte // minor version
     bytes(6) = (0 | 0x80).toByte // experimental
     IArray.unsafeFromArray(bytes)
 
