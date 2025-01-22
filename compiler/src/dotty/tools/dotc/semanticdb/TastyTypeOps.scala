@@ -76,7 +76,6 @@ object SDBtype:
                 (name, info) => 
                   paramRefSymtab.get(pt, name).getOrElse{
                     if sym.isConstructor then 
-                        //the type should belong to the class and not the constructor
                         registerFakeSymbol(TastyTypeParamRefSymbol(sym.owner, name, info))
                         TastyTypeParamRefSymbol(sym.owner, name, info)
                     else
