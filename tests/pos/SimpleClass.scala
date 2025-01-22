@@ -1,2 +1,1 @@
-class SimpleClassWithTypeParams[X]{
-}
+class SimpleClass{}

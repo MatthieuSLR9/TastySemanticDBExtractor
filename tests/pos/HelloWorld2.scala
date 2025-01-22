@@ -1,3 +1,3 @@
-class Example(t: Int   ){
-
+class SimpleClass{
+    def foo = 2
 }

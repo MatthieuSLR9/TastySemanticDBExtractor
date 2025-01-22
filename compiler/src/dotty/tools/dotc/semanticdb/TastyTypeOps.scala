@@ -196,7 +196,7 @@ object SDBtype:
                         case Some(value) =>
                       
                           val wildcardSym = TastyWildcardTypeSymbol(value, bounds)
-                          val ssym = wildcardSym.SDBname
+                          val ssym = wildcardSym.SDBFakeSymName
                           (Some(wildcardSym), semanticdb.TypeRef(semanticdb.Type.Empty, ssym, Seq.empty))
                     case TypeAlias(alias) => 
                       val sarg = loop(alias)

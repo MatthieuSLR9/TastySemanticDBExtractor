@@ -10,14 +10,26 @@ import tastyquery.Trees.*
 import scala.annotation.tailrec
 import tastyquery.Names
 import dotty.tools.dotc.core.SourceLanguage
+import dotty.tools.dotc.core.StdNames.str
 
+extension (name: TermName) def isPackageObjectName: Boolean = name match
+  case SimpleName(name) => name == "package" || name.endsWith("package$")
+  case _                => false
 
+extension (name: TypeName) def isPackageObjectClassName: Boolean = name match
+  case ObjectClassTypeName(underlying) => underlying.toTermName.isPackageObjectName
+  case _                               => false
+
+extension (sym: dotty.tools.dotc.semanticdb.Scala3.TastyFakeSymbol){
+  def SDBFakeSymName (using builder: SDBSymbolNameBuilder)(using Context): String =
+    builder.symbolName(sym)
+}
 object Extensions: 
   extension (name: Name)(using Context)
     def toTermName: TermName = name match
       case name: TypeName => name.toTermName
       case name: TermName => name
-    end toTermName
+    end toTermName    
 
     def toTypeName: TypeName = name match
       case name: TypeName => name
@@ -27,6 +39,8 @@ object Extensions:
   end extension
 
   extension (sym: Symbol)(using Context)
+    def SDBname (using builder: SDBSymbolNameBuilder): String =
+      builder.symbolName(sym)
 
     /** Is this symbol the root class or its companion object? */
     def isRoot: Boolean =
@@ -152,6 +166,10 @@ object Extensions:
     def isMethod: Boolean =
       predicateAs[TermSymbol](_.isMethod)
     end isMethod
+
+    def isVar: Boolean =
+      predicateAs[TermSymbol](_.kind == TermSymbolKind.Var)
+    end isVar
     
     def isModuleVal: Boolean =
       predicateAs[TermSymbol](_.isModuleVal)
