@@ -61,8 +61,8 @@ object Scala3:
           nameInSource == name.mangledString
 
   import dotty.tools.dotc.SDBSymbolNameBuilder
-  import dotty.tools.dotc.SDBname
-
+  import dotty.tools.dotc.Extensions.SDBname
+  import dotty.tools.dotc.SDBFakeSymName
   sealed trait TastyFakeSymbol {
     var sname: Option[String] = None
   }
@@ -84,7 +84,7 @@ object Scala3:
           case s: tastyquery.Symbols.Symbol => s.SDBname
           case s: TastyFakeSymbol =>
             s.sname.getOrElse {
-              val sname = s.SDBname
+              val sname = s.SDBFakeSymName
               s.sname = Some(sname)
               sname
             }

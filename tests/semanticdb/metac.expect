@@ -4307,6 +4307,43 @@ Occurrences:
 [4:62..4:64): == -> scala/Any#`==`().
 [4:65..4:67): aa -> _empty_/TastyQueryValDifficultNames#aa.
 
+expect/TastyQueryVar.scala
+--------------------------
+
+Summary:
+Schema => SemanticDB v4
+Uri => TastyQueryVar.scala
+Text => empty
+Language => Scala
+Symbols => 9 entries
+Occurrences => 9 entries
+Diagnostics => 1 entries
+
+Symbols:
+_empty_/TastyQueryVar# => class TastyQueryVar extends Object { self: TastyQueryVar => +5 decls }
+_empty_/TastyQueryVar#`<init>`(). => primary ctor <init> (): TastyQueryVar
+_empty_/TastyQueryVar#`v_=`(). => var method v_= (param x$1: Int): Unit
+_empty_/TastyQueryVar#`v_=`().(x$1) => param x$1: Int
+_empty_/TastyQueryVar#foo(). => method foo (param x: Int): Unit
+_empty_/TastyQueryVar#foo().(x) => param x: Int
+_empty_/TastyQueryVar#v(). => var method v Int
+_empty_/TastyQueryVar#x. => val method x Int
+local0 => var local z: String
+
+Occurrences:
+[0:6..0:19): TastyQueryVar <- _empty_/TastyQueryVar#
+[1:4..1:4): <- _empty_/TastyQueryVar#`<init>`().
+[1:8..1:9): v <- _empty_/TastyQueryVar#v().
+[2:8..2:9): x <- _empty_/TastyQueryVar#x.
+[2:12..2:13): v -> _empty_/TastyQueryVar#v().
+[3:8..3:11): foo <- _empty_/TastyQueryVar#foo().
+[3:12..3:13): x <- _empty_/TastyQueryVar#foo().(x)
+[3:16..3:19): Int -> scala/Int#
+[4:12..4:13): z <- local0
+
+Diagnostics:
+[4:12..4:13): [warning] unused local definition
+
 expect/TastyQueryVariousFeatures.scala
 --------------------------------------
 

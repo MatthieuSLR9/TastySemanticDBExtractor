@@ -59,22 +59,11 @@ import dotty.tools.dotc.semanticdb.SemanticSymbolBuilder
 import dotty.tools.dotc.semanticdb.Scala3.TastyFakeSymbol
 
 
-extension (name: TermName) def isPackageObjectName: Boolean = name match
-  case SimpleName(name) => name == "package" || name.endsWith("package$")
-  case _                => false
 
-extension (name: TypeName) def isPackageObjectClassName: Boolean = name match
-  case ObjectClassTypeName(underlying) => underlying.toTermName.isPackageObjectName
-  case _                               => false
-extension (sym: dotty.tools.dotc.semanticdb.Scala3.TastyFakeSymbol){
-  def SDBname (using builder: SDBSymbolNameBuilder)(using Context): String =
-    builder.symbolName(sym)
-}
+
 import dotty.tools.dotc.SDBSymbolNameBuilder
 
 extension (sym : Symbol){
-  def SDBname (using builder: SDBSymbolNameBuilder)(using Context): String =
-    builder.symbolName(sym)
   
   def symbolProps(symkinds: Set[SymbolKind])(using Context): Int =
 
@@ -171,15 +160,15 @@ extension (sym : Symbol){
       case x: PackageSymbol => List.empty
 
   def symbolAnnotations(using ctx: Context)(using SDBSymbolNameBuilder): List[dotty.tools.dotc.semanticdb.Annotation] =
-      val child = ctx.findTopLevelClass("scala.annotation.internal.Child")
-      val body = ctx.findTopLevelClass("scala.annotation.internal.Body")
+    val child = ctx.findTopLevelClass("scala.annotation.internal.Child")
+    val body = ctx.findTopLevelClass("scala.annotation.internal.Body")
 
-      sym.annotations.collect{
-        case annot
-        if annot.symbol != child
-        && annot.symbol != body
-        && false
-        => dotty.tools.dotc.semanticdb.Annotation(annot.tree.tpe.toSemanticType(sym.SDBname, Some(annot.symbol.asInstanceOf[TermSymbol])))
+    sym.annotations.collect{
+      case annot
+      if annot.symbol != child
+      && annot.symbol != body
+      && false
+      => dotty.tools.dotc.semanticdb.Annotation(annot.tree.tpe.toSemanticType(sym.SDBname, Some(annot.symbol.asInstanceOf[TermSymbol])))
 
   }
 
@@ -251,11 +240,9 @@ extension (sym : Symbol){
 
       case classSymbol: ClassSymbol => {
 
-        val z = classSymbol.appliedRefInsideThis
         val stparams = classSymbol.typeParams.sscopeOpt(using LinkMode.SymlinkChildren)
         val sparents = classSymbol.parents.map(_.toSemanticType(sym.SDBname, None))
         val sself = classSymbol.appliedRefInsideThis.toSemanticType(sym.SDBname, None)
-        val test = classSymbol.declarations.toList
         val typeParams = classSymbol.typeParams.toSet
         val declsSet = classSymbol.declarations.toSet
         val decls = (typeParams ++ declsSet).toList.sscopeOpt(using LinkMode.SymlinkChildren)
@@ -280,7 +267,6 @@ extension (sym : Symbol){
             displayName = sym.name.toString(),
             overriddenSymbols = sym.overriddenSymbols
             )
-
   }}
 }
 
@@ -340,36 +326,47 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
         namedTree match
           case defDef: DefDef =>
             defDef.paramLists.foreach{namedTree =>
-            namedTree match
-              case Left(listValDef) =>
-                listValDef.foreach(namedTree =>
-                  
-                  registerSymbolSimple(namedTree.symbol)(using ctx, sdbStringBuilder)
-                  if (!defDef.symbol.isConstructor){
-                    registerOccurrence(namedTree.symbol, namedTree.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
-                  }
-                  super.traverse(namedTree)
-                )
-              case Right(listTypeParam) => 
-                listTypeParam.foreach(namedTree =>
-
-                  
-                  if (!defDef.symbol.isConstructor){
+              namedTree match
+                case Left(listValDef) =>
+                  listValDef.foreach(namedTree =>
+                    
                     registerSymbolSimple(namedTree.symbol)(using ctx, sdbStringBuilder)
-                    registerOccurrence(namedTree.symbol, namedTree.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
-                  }
-                  super.traverse(namedTree)
-                )
-              }
+                    if (!defDef.symbol.isConstructor){
+                      if !namedTree.pos.isZeroExtent then
+                        registerOccurrence(namedTree.symbol, namedTree.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+                    }
+                    super.traverse(namedTree)
+                  )
+                case Right(listTypeParam) => 
+                  listTypeParam.foreach(namedTree =>
+
+                    
+                    if (!defDef.symbol.isConstructor){
+                      registerSymbolSimple(namedTree.symbol)(using ctx, sdbStringBuilder)
+                      if !namedTree.pos.isZeroExtent then
+                        registerOccurrence(namedTree.symbol, namedTree.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+                    }
+                    super.traverse(namedTree)
+                  )
+                }
             traverse(defDef.resultTpt)
             defDef.rhs match
               case None =>
               case Some(value) => traverse(value)
             registerDefinition(namedTree.symbol, pos, symbolKinds(namedTree), extractor)
-            registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+            if (defDef.symbol.isConstructor) then
+              registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+            else if !defDef.pos.isZeroExtent then
+              defDef.rhs match
+                case None => registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+                case Some(value) => 
+                  if value.pos.startColumn != defDef.pos.startColumn then 
+                    registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+              
           case _ =>
             registerDefinition(namedTree.symbol, pos, symbolKinds(namedTree), extractor)
-            registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+            if !pos.isZeroExtent then  
+              registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
             super.traverse(tree)
 
 
@@ -391,15 +388,24 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
             case _ =>
               
           super.traverse(tree)
-
+          
+      case assign : Assign =>
+        assign.lhs match
+          case select : Select => 
+            registerOccurrence(select.symbol, select.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
+            super.traverse(assign.rhs)
+          case _ => super.traverse(tree)
+        
+        
       case ident: Ident=> 
           
-          registerOccurrence(ident.symbol, ident.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
-          super.traverse(tree)
+        registerOccurrence(ident.symbol, ident.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
+        super.traverse(tree)
       
       case select : Select =>
-          registerOccurrence(select.symbol, select.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
-          super.traverse(tree)
+        registerOccurrence(select.symbol, select.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
+        super.traverse(tree)
+
       case apply: Apply =>
         apply.fun match
           case ident: Ident =>
@@ -442,8 +448,8 @@ class TastyExtractSemanticDB(entry: ClasspathEntry, cp: Classpath, ctx: dotty.to
   val originFileList = symbolList.flatMap { x =>
     x.tree.map(tree => (tree.pos.sourceFile, x))
   }.groupMap(_._1)(_._2).toList
-  def writeSemanticDB(): Unit = {
-    val unitContexts = semanticdb.ExtractSemanticDB.unitContexts.get
+
+  def writeSemanticDB(unitContexts :List[Contexts.Context]): Unit = {
     val sourceRoot = ctx.settings.sourceroot.value(using ctx)
     for ((dottyCtx, i) <- unitContexts.zipWithIndex) do {
       val unit = dottyCtx.compilationUnit

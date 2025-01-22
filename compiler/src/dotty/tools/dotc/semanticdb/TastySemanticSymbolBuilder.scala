@@ -88,7 +88,7 @@ class SDBSymbolNameBuilder:
           if sym.isPackage then
             b.append('/')
           else if sym.isType then b.append('#')
-          else if (sym.isMethod)
+          else if (sym.isMethod || sym.isVar)
           && (!sym.isStableMember || sym.isConstructor) then
             b.append('('); 
             addOverloadIdx(sym);

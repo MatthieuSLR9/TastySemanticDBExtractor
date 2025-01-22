@@ -420,8 +420,6 @@ class Pickler extends Phase {
       Files.createDirectories(outpath)
       BestEffortTastyWriter.write(outpath.nn, result)
 
-
-
     import dotty.tools.dotc.sbt.*
     import dotty.tools.dotc.sbt.LazyTastyQueryClasspath.*
     import tastyquery.Names as tqn
@@ -434,20 +432,6 @@ class Pickler extends Phase {
     if ctx.settings.YproduceSemanticdbUsingTasty.value then
       val sourceroot = ctx.settings.sourceroot.value
       val entryDebugString = sourceroot
-      val packagePrefixesAndData2 = result.head.pickled.toList.map(
-          (cls, tsty) => {
-            val internalName =
-              if (cls.is(Module)) cls.binaryClassName.stripSuffix(str.MODULE_SUFFIX).nn
-              else cls.binaryClassName
-
-            val fullyQualifiedName = internalName
-            val path = fullyQualifiedName.split('.')
-            val binaryName = path.last
-            val packagePrefix = path.dropRight(1).mkString(".")
-            val output = (packagePrefix, InMemoryTasty(fullyQualifiedName, binaryName, tsty))
-            output
-          }
-        )
       val packagePrefixesAndData = result.flatMap(
         _.pickled.toList.map(
           (cls, tsty) => {
@@ -472,20 +456,11 @@ class Pickler extends Phase {
         })
       .toList
 
-      val relativePathToSource = result.map(unit => {
-        val source = unit.source
-        val relativePath =
-          val reference = ctx.settings.sourceroot.value
-          util.SourceFile.relativePath(source, reference)
-        (relativePath, source)
-      }).toMap
-      
-      
-      
+      val unitContexts = semanticdb.ExtractSemanticDB.unitContexts.get
       val entry = InMemoryEntry(entryDebugString, packageData)
       val cp = entry :: makeClasspath(using ctx)
       val sdbExtractor = new TastyExtractSemanticDB(entry, cp, ctx)
-      sdbExtractor.writeSemanticDB()
+      sdbExtractor.writeSemanticDB(unitContexts)
 
     result
   }
