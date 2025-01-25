@@ -62,6 +62,7 @@ import dotty.tools.dotc.semanticdb.Scala3.TastyFakeSymbol
 
 
 import dotty.tools.dotc.SDBSymbolNameBuilder
+import dotty.tools.dotc.core.StdNames.str
 
 extension (sym : Symbol){
   
@@ -292,16 +293,24 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
     val sname = sym.SDBname
     registerSymbol(sym, symkinds)
 
-  private def registerOccurrence(symbol: Symbol, span: SourcePosition, role: SymbolOccurrence.Role)(using Context, SDBSymbolNameBuilder): Unit =
-    val range = if span.isUnknown then None else
-      val result = extractor.extract(symbol.name.toString(), span, symbol)
-      Some(result)
-
+  private def registerOccurrence(symbol: Symbol, range: Option[dotty.tools.dotc.semanticdb.Range], role: SymbolOccurrence.Role)(using Context, SDBSymbolNameBuilder): Unit =
     val occ = SymbolOccurrence(range, symbol.SDBname, role)
     if !generated.contains(occ) && occ.symbol.nonEmpty && !range.isEmpty then
       occurrences += occ
       generated += occ
+
+  private def registerOccurrence(symbol: Symbol, span: SourcePosition, role: SymbolOccurrence.Role)(using Context, SDBSymbolNameBuilder): Unit =
+    val range = if span.isUnknown then None else
+      val result = extractor.extract(symbol.name.toString(), span, symbol)
+      Some(result)
+    registerOccurrence(symbol, range, role)
+  
+  private def registerOccurrence(symbol: Symbol, otherSymbol: Symbol, otherSymbolSpan: SourcePosition, role: SymbolOccurrence.Role)(using Context, SDBSymbolNameBuilder): Unit =
+    val range = if otherSymbolSpan.isUnknown then None else
+      val result = extractor.extract(otherSymbol.name.toString(), otherSymbolSpan, otherSymbol)
+      Some(result)
     
+    registerOccurrence(symbol, range, role)
 
   private def registerOccurrence(symbol: Symbol, symbolName: String, span: SourcePosition, role: SymbolOccurrence.Role)(using Context, SDBSymbolNameBuilder): Unit =
     val range = if span.isUnknown then None else
@@ -392,13 +401,21 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
       case assign : Assign =>
         assign.lhs match
           case select : Select => 
-            registerOccurrence(select.symbol, select.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
+            val setterName = select.symbol.name.toTermName match
+              case simpleName : SimpleName => simpleName.append(str.SETTER_SUFFIX)
+              case _ => select.symbol.name.toTermName
+            
+            val found = select.symbol.owner match
+              case classSymbol: ClassSymbol =>
+                classSymbol.declarations.find(_.name == setterName).getOrElse(select.symbol)
+              case _ => select.symbol
+
+            registerOccurrence(found, select.symbol, select.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
             super.traverse(assign.rhs)
           case _ => super.traverse(tree)
         
         
       case ident: Ident=> 
-          
         registerOccurrence(ident.symbol, ident.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
         super.traverse(tree)
       
