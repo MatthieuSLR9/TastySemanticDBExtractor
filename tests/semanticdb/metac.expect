@@ -4315,34 +4315,38 @@ Schema => SemanticDB v4
 Uri => TastyQueryVar.scala
 Text => empty
 Language => Scala
-Symbols => 9 entries
-Occurrences => 9 entries
+Symbols => 11 entries
+Occurrences => 11 entries
 Diagnostics => 1 entries
 
 Symbols:
-_empty_/TastyQueryVar# => class TastyQueryVar extends Object { self: TastyQueryVar => +5 decls }
+_empty_/TastyQueryVar# => class TastyQueryVar extends Object { self: TastyQueryVar => +6 decls }
 _empty_/TastyQueryVar#`<init>`(). => primary ctor <init> (): TastyQueryVar
-_empty_/TastyQueryVar#`v_=`(). => var method v_= (param x$1: Int): Unit
-_empty_/TastyQueryVar#`v_=`().(x$1) => param x$1: Int
-_empty_/TastyQueryVar#foo(). => method foo (param x: Int): Unit
-_empty_/TastyQueryVar#foo().(x) => param x: Int
-_empty_/TastyQueryVar#v(). => var method v Int
-_empty_/TastyQueryVar#x. => val method x Int
-local0 => var local z: String
+_empty_/TastyQueryVar#`p_=`(). => var method p_= (param x$1: Unit): Unit
+_empty_/TastyQueryVar#`p_=`().(x$1) => param x$1: Unit
+_empty_/TastyQueryVar#`x_=`(). => var method x_= (param x$1: Int): Unit
+_empty_/TastyQueryVar#`x_=`().(x$1) => param x$1: Int
+_empty_/TastyQueryVar#foo(). => method foo => Unit
+_empty_/TastyQueryVar#p(). => var method p Unit
+_empty_/TastyQueryVar#x(). => var method x Int
+local0 => var local z: Int
+local1 => val local x: Boolean
 
 Occurrences:
 [0:6..0:19): TastyQueryVar <- _empty_/TastyQueryVar#
 [1:4..1:4): <- _empty_/TastyQueryVar#`<init>`().
-[1:8..1:9): v <- _empty_/TastyQueryVar#v().
-[2:8..2:9): x <- _empty_/TastyQueryVar#x.
-[2:12..2:13): v -> _empty_/TastyQueryVar#v().
-[3:8..3:11): foo <- _empty_/TastyQueryVar#foo().
-[3:12..3:13): x <- _empty_/TastyQueryVar#foo().(x)
-[3:16..3:19): Int -> scala/Int#
-[4:12..4:13): z <- local0
+[1:8..1:9): x <- _empty_/TastyQueryVar#x().
+[2:4..2:5): x -> _empty_/TastyQueryVar#`x_=`().
+[4:8..4:11): foo <- _empty_/TastyQueryVar#foo().
+[5:12..5:13): z <- local0
+[6:8..6:9): z -> local0
+[7:8..7:9): p <- _empty_/TastyQueryVar#p().
+[7:12..7:15): foo -> _empty_/TastyQueryVar#foo().
+[8:4..8:5): p -> _empty_/TastyQueryVar#`p_=`().
+[8:13..8:14): x <- local1
 
 Diagnostics:
-[4:12..4:13): [warning] unused local definition
+[8:13..8:14): [warning] unused local definition
 
 expect/TastyQueryVariousFeatures.scala
 --------------------------------------
