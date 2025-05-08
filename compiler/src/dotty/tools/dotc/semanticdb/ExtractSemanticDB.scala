@@ -100,27 +100,35 @@ class ExtractSemanticDB private (phaseMode: ExtractSemanticDB.PhaseMode) extends
     val appendDiagnostics = phaseMode == ExtractSemanticDB.PhaseMode.AppendDiagnostics
     val unitContexts = units.map(ctx.fresh.setCompilationUnit(_).withRootImports)
     ExtractSemanticDB.unitContexts = Some(unitContexts)
-    if (!ctx.settings.YproduceSemanticdbUsingTasty.value){
-      if (appendDiagnostics)
-        val warnings = ctx.reporter.allWarnings.groupBy(w => w.pos.source)
-        val buf = mutable.ListBuffer.empty[(Path, Seq[Diagnostic])]
-        val units0 =
-          for unitCtx <- unitContexts if computeDiagnostics(sourceRoot, warnings, buf += _)(using unitCtx)
-          yield unitCtx.compilationUnit
-        cancellable {
-          buf.toList.asJava.parallelStream().forEach { case (out, warnings) =>
-            ExtractSemanticDB.appendDiagnostics(warnings, out)
-          }
+    val warnings = ctx.reporter.allWarnings.groupBy(w => w.pos.source)
+    
+    /*This is appendDiagnostics is true when we enter ExtractSemanticDB the second time
+    We decide to enter it even without the Yproduce flag as a temporary fix Until we create a new phase
+    for the compiler that exists later on at the same level as appendDiagnostics in order to get the updated context
+    */
+    
+    if (appendDiagnostics)
+      val buf = mutable.ListBuffer.empty[(Path, Seq[Diagnostic])]
+      val units0 =
+        for unitCtx <- unitContexts if computeDiagnostics(sourceRoot, warnings, buf += _)(using unitCtx)
+        yield unitCtx.compilationUnit
+      cancellable {
+        buf.toList.asJava.parallelStream().forEach { case (out, warnings) =>
+          ExtractSemanticDB.appendDiagnostics(warnings, out)
         }
-        units0
-      else
+      }
+      units0
+    else
+      if (!ctx.settings.YproduceSemanticdbUsingTasty.value){
+
         val writeSemanticdbText = ctx.settings.semanticdbText.value
         val result = for unitCtx <- unitContexts if extractSemanticDB(sourceRoot, writeSemanticdbText)(using unitCtx)
         yield unitCtx.compilationUnit
         result
+        }
+      else for unitCtx <- unitContexts yield unitCtx.compilationUnit
+
   }
-  else for unitCtx <- unitContexts yield unitCtx.compilationUnit
-}
 
   def run(using Context): Unit = unsupported("run")
 end ExtractSemanticDB
@@ -189,7 +197,7 @@ object ExtractSemanticDB:
       out.close()
   end write
 
-  private def appendDiagnostics(
+  def appendDiagnostics(
     diagnostics: Seq[Diagnostic],
     outpath: Path
   ): Unit =
