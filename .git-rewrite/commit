@@ -1,0 +1,9 @@
+tree a67f717ffda0ec6e42b28b1be70ba9be7060e867
+parent 9ede7d003926fc46dd9620876c82b33ca9526850
+parent 78488cba57f5bfdf3181a8e6df5be2b290ebf564
+author Guillaume Martres <smarter@ubuntu.com> 1445270883 +0200
+committer Guillaume Martres <smarter@ubuntu.com> 1445270883 +0200
+
+Merge pull request #823 from smarter/fix/lifting-and-inference
+
+Always fully define the types of lifted expressions

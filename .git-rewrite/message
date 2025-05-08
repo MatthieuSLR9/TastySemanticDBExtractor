@@ -1,0 +1,3 @@
+Always fully define the types of lifted expressions
+
+Fixes #822
