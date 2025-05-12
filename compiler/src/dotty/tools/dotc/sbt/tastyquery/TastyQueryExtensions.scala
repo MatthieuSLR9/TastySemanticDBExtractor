@@ -16,6 +16,10 @@ extension (name: TermName) def isPackageObjectName: Boolean = name match
   case SimpleName(name) => name == "package" || name.endsWith("package$")
   case _                => false
 
+extension (name: UnsignedTermName) def isSetterName: Boolean = name match
+  case SimpleName(name) => name == "_$eq" || name.endsWith("_=")
+  case _                => false
+
 extension (name: TypeName) def isPackageObjectClassName: Boolean = name match
   case ObjectClassTypeName(underlying) => underlying.toTermName.isPackageObjectName
   case _                               => false

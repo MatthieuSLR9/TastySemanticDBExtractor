@@ -275,7 +275,7 @@ extension (sym : Symbol){
 class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBSymbolNameBuilder) extends TreeTraverser:
   val sdbStringBuilder = new SDBSymbolNameBuilder()
   val extractor = TastyPositionExtractor(sourceFilePath)
-
+  
   private def registerSymbol(sym: Symbol, symkinds: Set[SymbolKind])(using Context, SDBSymbolNameBuilder): Unit =
     val sname = sym.SDBname
     val isLocal = sname.isLocal
@@ -338,8 +338,7 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
               namedTree match
                 case Left(listValDef) =>
                   listValDef.foreach(namedTree =>
-                    
-                    registerSymbolSimple(namedTree.symbol)(using ctx, sdbStringBuilder)
+                    registerDefinition(namedTree.symbol, namedTree.pos, symbolKinds(namedTree), extractor)
                     if (!defDef.symbol.isConstructor){
                       if !namedTree.pos.isZeroExtent then
                         registerOccurrence(namedTree.symbol, namedTree.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
@@ -371,6 +370,24 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
                 case Some(value) => 
                   if value.pos.startColumn != defDef.pos.startColumn then 
                     registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+              
+          case c: ClassDef =>
+            def extractOwner(s: Symbol) = 
+              s match
+                case packageSymbol: PackageSymbol =>
+                  val packageRef = packageSymbol.packageTree match
+                    case None => 
+                    case Some(value) =>
+                      if (!value.pos.isZeroExtent && !packageSymbol.isEmptyPackage){
+                          registerOccurrence(packageSymbol, value.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+                      }
+                  
+                case _ =>
+            extractOwner(c.symbol.owner)
+            registerDefinition(namedTree.symbol, pos, symbolKinds(namedTree), extractor)
+            if !pos.isZeroExtent then  
+              registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+            super.traverse(tree)
               
           case _ =>
             registerDefinition(namedTree.symbol, pos, symbolKinds(namedTree), extractor)
@@ -434,12 +451,20 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
           case _ => super.traverse(tree)
       case _ =>
           super.traverse(tree)
+  
+  extension (list: List[Either[List[ValDef], List[TypeParam]]])
+    private  inline def isSingleArg = list match
+      case _::Nil => true
+      case _             => false
+
+  extension (tree: DefDef)
+    private def isSetterDef(using Context): Boolean =
+      tree.name.isSetterName && tree.paramLists.isSingleArg
 
   private def symbolKinds(tree: Tree)(using Context): Set[SymbolKind] =
       val symkinds = scala.collection.mutable.HashSet.empty[SymbolKind]
       tree match
         case tree: ValDef =>
-          
           if !tree.symbol.isParam then
             tree.symbol.kind match
               case TermSymbolKind.Val => symkinds += SymbolKind.Val
@@ -448,9 +473,12 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
               case _ =>
           if tree.rhs.isEmpty && !(tree.symbol.isParamAccessor || tree.symbol.isCaseClassAccessor|| tree.symbol.isParam) then
             symkinds += SymbolKind.Abstract
-        case tree: DefDef =>
-          if tree.rhs.isEmpty then
+        case defTree: DefDef =>
+          if defTree.rhs.isEmpty then
             symkinds += SymbolKind.Abstract
+          if defTree.isSetterDef then
+            symkinds += SymbolKind.Setter
+
         case tree: Bind if (!tree.symbol.isType) =>
           symkinds += SymbolKind.Val
         case tree: Bind if (tree.symbol.isType) =>
