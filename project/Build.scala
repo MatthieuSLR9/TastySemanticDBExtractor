@@ -767,7 +767,7 @@ object Build {
         "org.jline" % "jline-terminal" % "3.27.1",
         "org.jline" % "jline-terminal-jni" % "3.27.1", // needed for Windows
         ("io.get-coursier" %% "coursier" % "2.0.16" % Test).cross(CrossVersion.for3Use2_13),
-        "ch.epfl.scala" %% "tasty-query" % "0.0.0+1226-275ea2d1+20241221-0226-SNAPSHOT",
+        "ch.epfl.scala" %% "tasty-query" %"0.0.0+1226-275ea2d1+20250509-1526-SNAPSHOT",//"0.0.0+1226-275ea2d1+20250509-1516-SNAPSHOT",//"0.0.0+1226-275ea2d1+20250509-1457-SNAPSHOT", //"0.0.0+1226-275ea2d1+20250509-1450-SNAPSHOT",//"0.0.0+1226-275ea2d1+20241221-0226-SNAPSHOT",
       ),
 
       // For convenience, change the baseDirectory when running the compiler

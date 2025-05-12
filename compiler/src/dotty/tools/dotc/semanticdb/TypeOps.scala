@@ -87,6 +87,7 @@ class TypeOps:
       def enterParamRef(tpe: Type): Unit =
         tpe match {
           case lam: LambdaType =>
+            
             // Find the "actual" binder type for nested LambdaType
             // For example, `def foo(x: T)(y: T): T` and for `<y>.owner.info` would be like
             // `MethodType(...<x>, resType = MethodType(...<y>, resType = <T>))`.
@@ -96,7 +97,12 @@ class TypeOps:
             // We try to find the "actual" binder of <y>: `inner`,
             // and register them to the symbol table with `(<y>, inner) -> <y>`
             // instead of `("y", outer) -> <y>`
-            if lam.paramNames.contains(sym.name) then
+            //
+            // Must still check if the sym is a Param to prevent scenerios such as:
+            // def foo(x: Int) = {val x = true}
+            // x has owner foo and if not checked could be registered as a parameter
+            // as foo contains a parameter with name x
+            if sym.is(Flags.Param) && lam.paramNames.contains(sym.name) then
               paramRefSymtab((lam, sym.name)) = sym
             else
               enterParamRef(lam.resType)
@@ -182,9 +188,16 @@ class TypeOps:
           ): (Type, List[List[SemanticSymbol]], List[SemanticSymbol]) = t match {
             case mt: MethodType =>
               val syms: List[SemanticSymbol] = mt.paramNames.zip(mt.paramInfos).map { (name, info) =>
-                paramRefSymtab.lookup(mt, name).getOrElse {
+                val x = paramRefSymtab.lookup(mt, name) 
+                x match
+                  case None => TermParamRefSymbol(sym, name, info).tap(registerFakeSymbol)
+                  case Some(value) => value
+                
+                
+                
+                /*.getOrElse {
                   TermParamRefSymbol(sym, name, info).tap(registerFakeSymbol)
-                }
+                }*/
               }
               flatten(mt.resType, paramss :+ syms, tparams)
             case pt: PolyType =>
@@ -211,7 +224,9 @@ class TypeOps:
           val stparams = cls.cls.typeParams.sscopeOpt
           val sparents = cls.parents.map(_.toSemanticType(sym))
           val sself = cls.selfType.toSemanticType(sym)
+          val unScopedDecls = cls.decls.toList
           val decls = cls.decls.toList.sscopeOpt
+          val x = cls.cls.name
           s.ClassSignature(stparams, sparents, sself, decls)
 
         case TypeBounds(lo, hi) =>

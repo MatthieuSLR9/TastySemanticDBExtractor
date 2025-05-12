@@ -42,11 +42,10 @@ class TastySemanticdbTests:
 
   def runExpectTest(updateExpectFiles: Boolean): Unit =
 
-    println("RUNNING ALL TESTS")
     val target = generateSemanticdb()
     val errors = mutable.ArrayBuffer.empty[Path]
     val metacSb: StringBuilder = StringBuilder(5000)
-    def collectErrorOrUpdate(expectPath: Path, obtained: String, fileName: String) =
+    def collectErrorOrUpdate(expectPath: Path, obtained: String) =
       if updateExpectFiles then
         Files.write(expectPath, obtained.getBytes(StandardCharsets.UTF_8))
         println("updated: " + expectPath)
@@ -56,7 +55,6 @@ class TastySemanticdbTests:
         val relExpect = rootSrc.relativize(expectPath)
         if expected.trim != obtained.trim then
           println("INCORRECT PATH IS:")
-          println(fileName)
           Files.write(expectPath.resolveSibling("" + expectName + ".out"), obtained.getBytes(StandardCharsets.UTF_8))
           errors += expectPath
     
@@ -72,12 +70,9 @@ class TastySemanticdbTests:
       val doc = Tools.loadTextDocument(source, relpath, semanticdbPath)
       Tools.metac(doc, rootSrc.relativize(source))(using metacSb)
       val obtained = trimTrailingWhitespace(SemanticdbTests.printTextDocument(doc))
-      collectErrorOrUpdate(expectPath, obtained, filename)
-    /*
-    Decided to not check metacExpectFile here as the file just regroups the SemanticDB info of all files in the test folder which have some that do not pass with the Tasty - Query version.
-    Prefered to do this rather than include in the metacExpectFile only files produced using Tasty-Query.
-    This enables to not alter SemanticDBTests.scala and keep update the updateExpect of it.
-    */
+      collectErrorOrUpdate(expectPath, obtained)
+
+    collectErrorOrUpdate(metacExpectFile, metacSb.toString)
     for expect <- errors do
       def red(msg: String) = Console.RED + msg + Console.RESET
       def blue(msg: String) = Console.BLUE + msg + Console.RESET
@@ -104,7 +99,6 @@ class TastySemanticdbTests:
     
     val filteredFiles = files.toList.filter { file =>
     file.getFileName.toString.startsWith("TastyQuery")}
-    println(filteredFiles.toList)
     filteredFiles
 
   def javaFiles(): List[Path] =
@@ -134,8 +128,6 @@ class TastySemanticdbTests:
       "-usejavacp",
       "-Wunused:all"
     ) ++ inputFiles().map(_.toString)
-    println("ARGS")
-    println(args.toList)
     
     val exit = Main.process(args)
     assertFalse(s"dotc errors: ${exit.errorCount}", exit.hasErrors)
