@@ -42,12 +42,13 @@ class TastySyntheticsExtractor:
                 Some(select.toSemanticId)
               )
             case _ =>
+              tree.pos.endColumn
               s.OriginalTree(
-                tree.pos.range
+                tree.fun.pos.range
               )
           val targs = tree.args.map(x => x.toType.toSemanticType("", None))
           s.Synthetic(
-            tree.pos.range,
+            tree.fun.pos.range,
             s.TypeApplyTree(
               fnTree, targs
             )
@@ -57,11 +58,15 @@ class TastySyntheticsExtractor:
   private def isSynthetic(typeApply: TypeApply): Boolean =
     typeApply.args match
       case head :: next =>
-        head.pos.isSynthetic
+        if (head.pos.isSynthetic) then true
+        else{
+          typeApply.pos.endOffset == head.pos.endOffset
+        }
       case Nil => false
   
   private def isSynthetic(select: Select): Boolean =
     select.pos.endOffset == select.qualifier.pos.endOffset
+
   extension (select: tastyquery.Trees.Select)
     private def toSemanticId(using Context, SDBSymbolNameBuilder) =
       s.IdTree(select.symbol.SDBname)

@@ -285,7 +285,13 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
         if isLocal then
           localNames += sname
         symbolInfos += sym.symbolInfo(symkinds)
-
+  
+  private def excludeQual(sym: Symbol)(using Context): Boolean =
+    sym.isAnonymousFunction
+    
+  private def excludeSymbol(sym: Symbol) = {
+    sym.name.toTermName.isWildcard || excludeQual(sym)
+  }
 
   private def registerSymbolSimple(sym: Symbol)(using Context, SDBSymbolNameBuilder): Unit = {
       registerSymbol(sym, Set.empty)
@@ -307,7 +313,10 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
       val result = extractor.extract(symbol.name.toString(), span, symbol)
       Some(result)
     registerOccurrence(symbol, range, role)
-  
+  private def registerUseGuarded(symbol: Symbol,  span: SourcePosition, role: SymbolOccurrence.Role)(using Context, SDBSymbolNameBuilder): Unit =
+    if (!excludeSymbol(symbol)){
+      registerOccurrence(symbol, span, role)
+    }
   private def registerOccurrence(symbol: Symbol, otherSymbol: Symbol, otherSymbolSpan: SourcePosition, role: SymbolOccurrence.Role)(using Context, SDBSymbolNameBuilder): Unit =
     val range = if otherSymbolSpan.isUnknown then None else
       val result = extractor.extract(otherSymbol.name.toString(), otherSymbolSpan, otherSymbol)
@@ -365,16 +374,18 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
             defDef.rhs match
               case None =>
               case Some(value) => traverse(value)
-            registerDefinition(namedTree.symbol, pos, symbolKinds(namedTree), extractor)
-            if (defDef.symbol.isConstructor) then
-              registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
-            else if !defDef.pos.isZeroExtent then
-              defDef.rhs match
-                case None => registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
-                case Some(value) => 
-                  if value.pos.startColumn != defDef.pos.startColumn then 
-                    registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
-              
+            if(!excludeSymbol(namedTree.symbol)){
+              registerDefinition(namedTree.symbol, pos, symbolKinds(namedTree), extractor)
+            
+              if (defDef.symbol.isConstructor) then
+                registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+              else if !defDef.pos.isZeroExtent then
+                defDef.rhs match
+                  case None => registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+                  case Some(value) => 
+                    if value.pos.startColumn != defDef.pos.startColumn then 
+                      registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
+            }
           case c: ClassDef =>
             def extractOwner(s: Symbol) = 
               s match
@@ -437,7 +448,7 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
         
         
       case ident: Ident=> 
-        registerOccurrence(ident.symbol, ident.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
+        registerUseGuarded(ident.symbol, ident.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
         super.traverse(tree)
       case select : Select =>
         val qualPos = select.qualifier.pos

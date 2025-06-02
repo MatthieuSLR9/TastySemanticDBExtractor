@@ -18,6 +18,10 @@ extension (name: TermName) def isPackageObjectName: Boolean = name match
   case SimpleName(name) => name == "package" || name.endsWith("package$")
   case _                => false
 
+extension (name: TermName) def isWildcard: Boolean = name match
+  case SimpleName(name) => name == "package" || name.endsWith("package$")
+  case _                => false
+
 extension (name: TermName) def isGetter: Boolean = name match
   case SimpleName(name) => name == "package" || name.endsWith("package$")
   case _                => false
@@ -112,6 +116,9 @@ object Extensions:
       case sym: TermOrTypeSymbol => sym.isFinalMember
       case _ => false
     end isFinal
+
+    def isAnonymousFunction: Boolean =
+      sym.isMethod && sym.name.toTermName.toString == str.ANON_FUN
     
     def isSealed: Boolean =
       hasOpenLevel(OpenLevel.Sealed)

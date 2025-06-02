@@ -27,58 +27,118 @@ Schema => SemanticDB v4
 Uri => TastyQueryLists.scala
 Text => empty
 Language => Scala
-Symbols => 11 entries
-Occurrences => 28 entries
-Synthetics => 4 entries
+Symbols => 19 entries
+Occurrences => 69 entries
+Synthetics => 15 entries
 
 Symbols:
-_empty_/TastyQueryListSynthetics# => class TastyQueryListSynthetics extends Object { self: TastyQueryListSynthetics => +5 decls }
-_empty_/TastyQueryListSynthetics#`<init>`(). => primary ctor <init> (): TastyQueryListSynthetics
-_empty_/TastyQueryListSynthetics#first. => val method first Int
-_empty_/TastyQueryListSynthetics#recursion(). => method recursion (param x: List[Int]): String
-_empty_/TastyQueryListSynthetics#recursion().(x) => param x: List[Int]
-_empty_/TastyQueryListSynthetics#syntheticList. => val method syntheticList List[Int]
-_empty_/TastyQueryListSynthetics#syntheticList2. => val method syntheticList2 List[Int]
-local0 => val local head: Int
-local1 => val local next: List[Int]
-local2 => val local head: Int
-local3 => val local next: List[Int]
+_empty_/TastyQueryLists# => class TastyQueryLists extends Object { self: TastyQueryLists => +10 decls }
+_empty_/TastyQueryLists#`<init>`(). => primary ctor <init> (): TastyQueryLists
+_empty_/TastyQueryLists#firstElement(). => method firstElement (): Any
+_empty_/TastyQueryLists#flatMap(). => method flatMap (): List[String]
+_empty_/TastyQueryLists#mapDouble(). => method mapDouble (): List[Int]
+_empty_/TastyQueryLists#recursion(). => method recursion (param x: List[Int]): String
+_empty_/TastyQueryLists#recursion().(x) => param x: List[Int]
+_empty_/TastyQueryLists#recursionResult(). => method recursionResult (): String
+_empty_/TastyQueryLists#syntheticList. => val method syntheticList List[Int]
+_empty_/TastyQueryLists#syntheticList2. => val method syntheticList2 List[Int]
+_empty_/TastyQueryLists#syntheticList3. => val method syntheticList3 List[String | Int]
+_empty_/TastyQueryLists#syntheticList4. => val method syntheticList4 List[List[Int]]
+local0 => param innerList: List[Int]
+local1 => param x: Int
+local2 => param innerList: List[Int]
+local3 => param x: Int
+local4 => param x: String
+local5 => param x: Int
+local6 => val local tail: List[Int]
 
 Occurrences:
-[0:6..0:30): TastyQueryListSynthetics <- _empty_/TastyQueryListSynthetics#
-[1:2..1:2): <- _empty_/TastyQueryListSynthetics#`<init>`().
-[1:6..1:19): syntheticList <- _empty_/TastyQueryListSynthetics#syntheticList.
-[1:22..1:26): List -> scala/package.List.
-[2:6..2:20): syntheticList2 <- _empty_/TastyQueryListSynthetics#syntheticList2.
-[2:23..2:36): syntheticList -> _empty_/TastyQueryListSynthetics#syntheticList.
-[2:37..2:39): ++ -> scala/collection/IterableOps#`++`().
-[2:40..2:53): syntheticList -> _empty_/TastyQueryListSynthetics#syntheticList.
-[4:6..4:11): first <- _empty_/TastyQueryListSynthetics#first.
-[4:14..4:27): syntheticList -> _empty_/TastyQueryListSynthetics#syntheticList.
-[5:6..5:15): recursion <- _empty_/TastyQueryListSynthetics#recursion().
-[5:16..5:17): x <- _empty_/TastyQueryListSynthetics#recursion().(x)
-[5:19..5:23): List -> scala/package.List#
-[5:24..5:27): Int -> scala/Int#
-[5:32..5:38): String -> scala/Predef.String#
-[6:4..6:5): x -> _empty_/TastyQueryListSynthetics#recursion().(x)
-[7:13..7:17): head <- local0
-[7:18..7:20): :: -> scala/package.`::`.
-[7:21..7:25): next <- local1
-[7:29..7:38): recursion -> _empty_/TastyQueryListSynthetics#recursion().
-[7:39..7:43): next -> local1
-[8:13..8:16): Nil -> scala/package.Nil.
-[10:2..10:15): syntheticList -> _empty_/TastyQueryListSynthetics#syntheticList.
-[11:9..11:13): head <- local2
-[11:14..11:16): :: -> scala/package.`::`.
-[11:17..11:21): next <- local3
-[11:25..11:30): print -> scala/Predef.print().
-[12:9..12:12): Nil -> scala/package.Nil.
+[0:6..0:21): TastyQueryLists <- _empty_/TastyQueryLists#
+[2:2..2:2): <- _empty_/TastyQueryLists#`<init>`().
+[2:6..2:19): syntheticList <- _empty_/TastyQueryLists#syntheticList.
+[2:22..2:26): List -> scala/package.List.
+[3:6..3:20): syntheticList2 <- _empty_/TastyQueryLists#syntheticList2.
+[3:23..3:36): syntheticList -> _empty_/TastyQueryLists#syntheticList.
+[3:37..3:39): ++ -> scala/collection/IterableOps#`++`().
+[3:40..3:53): syntheticList -> _empty_/TastyQueryLists#syntheticList.
+[4:6..4:20): syntheticList3 <- _empty_/TastyQueryLists#syntheticList3.
+[4:23..4:27): List -> scala/package.List.
+[4:43..4:45): ++ -> scala/collection/IterableOps#`++`().
+[4:46..4:50): List -> scala/package.List.
+[5:6..5:20): syntheticList4 <- _empty_/TastyQueryLists#syntheticList4.
+[5:23..5:27): List -> scala/package.List.
+[5:28..5:32): List -> scala/package.List.
+[5:43..5:47): List -> scala/package.List.
+[7:6..7:13): flatMap <- _empty_/TastyQueryLists#flatMap().
+[7:17..7:21): List -> scala/package.List#
+[7:22..7:28): String -> scala/Predef.String#
+[8:4..8:18): syntheticList4 -> _empty_/TastyQueryLists#syntheticList4.
+[8:19..8:26): flatMap -> scala/collection/immutable/List#flatMap().
+[8:27..8:36): innerList <- local0
+[9:6..9:15): innerList -> local0
+[9:16..9:19): map -> scala/collection/immutable/List#map().
+[9:20..9:21): x <- local1
+[9:29..9:30): x -> local1
+[9:31..9:32): > -> scala/Int#`>`(+3).
+[11:4..11:18): syntheticList4 -> _empty_/TastyQueryLists#syntheticList4.
+[11:19..11:26): flatMap -> scala/collection/immutable/List#flatMap().
+[11:27..11:36): innerList <- local2
+[12:6..12:15): innerList -> local2
+[12:16..12:19): map -> scala/collection/immutable/List#map().
+[12:20..12:21): x <- local3
+[12:29..12:30): x -> local3
+[12:31..12:32): % -> scala/Int#`%`(+3).
+[12:34..12:36): == -> scala/Int#`==`(+3).
+[12:54..12:60): filter -> scala/collection/immutable/List#filter().
+[12:61..12:62): x <- local4
+[12:66..12:67): x -> local4
+[12:68..12:74): length -> java/lang/String#length().
+[12:75..12:77): != -> scala/Int#`!=`(+3).
+[16:6..16:15): mapDouble <- _empty_/TastyQueryLists#mapDouble().
+[16:19..16:23): List -> scala/package.List#
+[16:24..16:27): Int -> scala/Int#
+[17:4..17:17): syntheticList -> _empty_/TastyQueryLists#syntheticList.
+[17:18..17:21): map -> scala/collection/immutable/List#map().
+[17:22..17:23): x <- local5
+[17:27..17:28): x -> local5
+[17:29..17:30): * -> scala/Int#`*`(+3).
+[20:6..20:18): firstElement <- _empty_/TastyQueryLists#firstElement().
+[20:22..20:25): Any -> scala/Any#
+[21:4..21:17): syntheticList -> _empty_/TastyQueryLists#syntheticList.
+[21:18..21:28): headOption -> scala/collection/LinearSeqOps#headOption().
+[21:29..21:38): getOrElse -> scala/Option#getOrElse().
+[24:6..24:15): recursion <- _empty_/TastyQueryLists#recursion().
+[24:16..24:17): x <- _empty_/TastyQueryLists#recursion().(x)
+[24:19..24:23): List -> scala/package.List#
+[24:24..24:27): Int -> scala/Int#
+[24:31..24:37): String -> scala/Predef.String#
+[25:4..25:5): x -> _empty_/TastyQueryLists#recursion().(x)
+[26:13..26:15): :: -> scala/package.`::`.
+[26:16..26:20): tail <- local6
+[26:24..26:33): recursion -> _empty_/TastyQueryLists#recursion().
+[26:34..26:38): tail -> local6
+[27:11..27:14): Nil -> scala/package.Nil.
+[31:6..31:21): recursionResult <- _empty_/TastyQueryLists#recursionResult().
+[31:25..31:31): String -> scala/Predef.String#
+[32:4..32:13): recursion -> _empty_/TastyQueryLists#recursion().
+[32:14..32:27): syntheticList -> _empty_/TastyQueryLists#syntheticList.
 
 Synthetics:
-[1:22..1:26):List => *.apply[Int]
-[2:23..2:39):syntheticList ++ => *[Int]
-[7:18..7:20)::: => *.unapply[Int]
-[11:14..11:16)::: => *.unapply[Int]
+[2:22..2:26):List => *.apply[Int]
+[3:23..3:39):syntheticList ++ => *[Int]
+[4:23..4:45):List("foo", "foo2") ++ => *[String | Int]
+[4:23..4:27):List => *.apply[String]
+[4:46..4:50):List => *.apply[Int]
+[5:23..5:27):List => *.apply[List[Int]]
+[5:28..5:32):List => *.apply[Int]
+[5:43..5:47):List => *.apply[Int]
+[8:4..8:26):syntheticList4.flatMap => *[Int]
+[9:6..9:19):innerList.map => *[Int]
+[11:4..11:26):syntheticList4.flatMap => *[String]
+[12:6..12:19):innerList.map => *[String]
+[17:4..17:21):syntheticList.map => *[Int]
+[21:4..21:38):syntheticList.headOption.getOrElse => *[Int | String]
+[26:13..26:15)::: => *.unapply[Int]
 
 expect/TastyQueryMatching.scala
 -------------------------------
