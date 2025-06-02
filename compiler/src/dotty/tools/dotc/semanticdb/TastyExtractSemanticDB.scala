@@ -63,6 +63,7 @@ import dotty.tools.dotc.semanticdb.Scala3.TastyFakeSymbol
 
 import dotty.tools.dotc.SDBSymbolNameBuilder
 import dotty.tools.dotc.core.StdNames.str
+import dotty.tools.dotc.semanticdb.TastySyntheticsExtractor
 
 extension (sym : Symbol){
   
@@ -271,10 +272,11 @@ extension (sym : Symbol){
   }}
 }
 
-
 class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBSymbolNameBuilder) extends TreeTraverser:
   val sdbStringBuilder = new SDBSymbolNameBuilder()
   val extractor = TastyPositionExtractor(sourceFilePath)
+  val synth = TastySyntheticsExtractor()
+
   
   private def registerSymbol(sym: Symbol, symkinds: Set[SymbolKind])(using Context, SDBSymbolNameBuilder): Unit =
     val sname = sym.SDBname
@@ -294,6 +296,7 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
     registerSymbol(sym, symkinds)
 
   private def registerOccurrence(symbol: Symbol, range: Option[dotty.tools.dotc.semanticdb.Range], role: SymbolOccurrence.Role)(using Context, SDBSymbolNameBuilder): Unit =
+    val name = symbol.SDBname
     val occ = SymbolOccurrence(range, symbol.SDBname, role)
     if !generated.contains(occ) && occ.symbol.nonEmpty && !range.isEmpty then
       occurrences += occ
@@ -334,6 +337,7 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
       case namedTree: (DefTree) =>
         namedTree match
           case defDef: DefDef =>
+            
             defDef.paramLists.foreach{namedTree =>
               namedTree match
                 case Left(listValDef) =>
@@ -435,12 +439,19 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
       case ident: Ident=> 
         registerOccurrence(ident.symbol, ident.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
         super.traverse(tree)
-      
       case select : Select =>
-        registerOccurrence(select.symbol, select.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
+        val qualPos = select.qualifier.pos
+        val selectPos = select.pos
+        if(!qualPos.isUnknown && !selectPos.isUnknown && qualPos.endOffset != selectPos.endOffset){
+          registerOccurrence(select.symbol, select.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
+        }
         super.traverse(tree)
+      case typeApply: TypeApply =>
+        synth.tryFindSynthetic(typeApply).foreach(synthetics.addOne)
+        super.traverse(typeApply)
 
       case apply: Apply =>
+
         apply.fun match
           case ident: Ident =>
             ident.symbol match
@@ -515,11 +526,12 @@ class TastyExtractSemanticDB(entry: ClasspathEntry, cp: Classpath, ctx: dotty.to
           case None => )
       val definitionList = TreeTraverser.symbolInfos.toList
       val occurrences = TreeTraverser.occurrences.toList
+      val synthetics = TreeTraverser.synthetics.toList
       semanticdb.ExtractSemanticDB.write(
         unit.source,
         occurrences,
         definitionList,
-        List.empty[dotty.tools.dotc.semanticdb.Synthetic],
+        synthetics,
         outputDir,
         sourceRoot,
         false

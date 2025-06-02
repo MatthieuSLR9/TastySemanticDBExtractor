@@ -11,11 +11,16 @@ import scala.annotation.tailrec
 import tastyquery.Names
 import dotty.tools.dotc.core.SourceLanguage
 import dotty.tools.dotc.core.StdNames.str
+import dotty.tools.dotc.semanticdb.Range
+import tastyquery.SourcePosition
 
 extension (name: TermName) def isPackageObjectName: Boolean = name match
   case SimpleName(name) => name == "package" || name.endsWith("package$")
   case _                => false
 
+extension (name: TermName) def isGetter: Boolean = name match
+  case SimpleName(name) => name == "package" || name.endsWith("package$")
+  case _                => false
 extension (name: UnsignedTermName) def isSetterName: Boolean = name match
   case SimpleName(name) => name == "_$eq" || name.endsWith("_=")
   case _                => false
@@ -201,5 +206,12 @@ object Extensions:
             case Left(termParams)  => termParams.contains(sym)
             case Right(typeParams) => typeParams.contains(sym)
         }
+  extension (span: SourcePosition)(using Context)
+    def range: Option[Range] = 
+      if (span.isUnknown) then None
+      else{
+        Some(Range(span.startLine,span.startColumn,span.endLine, span.endColumn))
+
+      }
     
 end Extensions
