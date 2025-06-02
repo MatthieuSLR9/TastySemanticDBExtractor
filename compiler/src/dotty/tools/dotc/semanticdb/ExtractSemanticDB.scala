@@ -103,8 +103,8 @@ class ExtractSemanticDB private (phaseMode: ExtractSemanticDB.PhaseMode) extends
     val warnings = ctx.reporter.allWarnings.groupBy(w => w.pos.source)
     
     /*
-    Diagnositcs must be inputed here even if we create SemanticDB using TASTy files as
-    the TastyExtractSemanticDB phase happens to early in the compiler to get them there
+    Diagnostics must be inputed here even if we create SemanticDB using TASTy files as
+    the TastyExtractSemanticDB phase happens too early in the compiler to get them there
     */
     
     if (appendDiagnostics)

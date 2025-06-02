@@ -220,5 +220,8 @@ object Extensions:
         Some(Range(span.startLine,span.startColumn,span.endLine, span.endColumn))
 
       }
-    
+
+  extension (tree: DefDef)
+    def isSetterDef(using Context): Boolean =
+      tree.name.isSetterName && (tree.paramLists.size == 1)
 end Extensions

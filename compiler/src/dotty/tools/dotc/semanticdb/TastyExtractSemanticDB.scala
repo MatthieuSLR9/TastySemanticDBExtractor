@@ -16,8 +16,7 @@ import tastyquery.Classpaths.*
 import scala.collection.mutable.{Map, ArrayBuffer}
 import dotty.tools.dotc.semanticdb.ExtractSemanticDB
 
-
-import dotty.tools.dotc.Extensions.*
+import dotty.tools.dotc.Extensions.* 
 import dotty.tools.dotc.config.Settings.*
 import dotty.tools.dotc.semanticdb.Range.*
 import dotty.tools.dotc.config.Settings.Setting.value
@@ -171,7 +170,6 @@ extension (sym : Symbol){
       && annot.symbol != body
       && false
       => dotty.tools.dotc.semanticdb.Annotation(annot.tree.tpe.toSemanticType(sym.SDBname, Some(annot.symbol.asInstanceOf[TermSymbol])))
-
   }
 
   def replaceUnitInMethodType(methodType: TypeOrMethodic, newResultType: Type)(using ctx: Context): TypeOrMethodic = {
@@ -209,7 +207,6 @@ extension (sym : Symbol){
           res.toSemanticSig(using LinkMode.SymlinkChildren)(sym.asInstanceOf[TermSymbol])
         }
         else {
-
           termSymbol.declaredType.toSemanticSig(using LinkMode.SymlinkChildren)(sym.asInstanceOf[TermSymbol])
         }
 
@@ -274,10 +271,14 @@ extension (sym : Symbol){
 
 class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBSymbolNameBuilder) extends TreeTraverser:
   val sdbStringBuilder = new SDBSymbolNameBuilder()
-  val extractor = TastyPositionExtractor(sourceFilePath)
-  val synth = TastySyntheticsExtractor()
-
-  
+  val positionExtractor = TastyPositionExtractor(sourceFilePath)
+  val syntheticExtractor = TastySyntheticsExtractor()
+  val synthetics = new ListBuffer[Synthetic]()
+  val symbolInfos = new ListBuffer[SymbolInformation]()
+  val occurrences = new ListBuffer[SymbolOccurrence]()
+  val localNames = new mutable.HashSet[String]()
+  private val generated = new mutable.HashSet[SymbolOccurrence]
+ 
   private def registerSymbol(sym: Symbol, symkinds: Set[SymbolKind])(using Context, SDBSymbolNameBuilder): Unit =
     val sname = sym.SDBname
     val isLocal = sname.isLocal
@@ -310,23 +311,26 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
 
   private def registerOccurrence(symbol: Symbol, span: SourcePosition, role: SymbolOccurrence.Role)(using Context, SDBSymbolNameBuilder): Unit =
     val range = if span.isUnknown then None else
-      val result = extractor.extract(symbol.name.toString(), span, symbol)
+      val result = positionExtractor.extract(symbol.name.toString(), span, symbol)
       Some(result)
+      
     registerOccurrence(symbol, range, role)
+
   private def registerUseGuarded(symbol: Symbol,  span: SourcePosition, role: SymbolOccurrence.Role)(using Context, SDBSymbolNameBuilder): Unit =
     if (!excludeSymbol(symbol)){
       registerOccurrence(symbol, span, role)
     }
+
   private def registerOccurrence(symbol: Symbol, otherSymbol: Symbol, otherSymbolSpan: SourcePosition, role: SymbolOccurrence.Role)(using Context, SDBSymbolNameBuilder): Unit =
     val range = if otherSymbolSpan.isUnknown then None else
-      val result = extractor.extract(otherSymbol.name.toString(), otherSymbolSpan, otherSymbol)
+      val result = positionExtractor.extract(otherSymbol.name.toString(), otherSymbolSpan, otherSymbol)
       Some(result)
-    
+      
     registerOccurrence(symbol, range, role)
 
   private def registerOccurrence(symbol: Symbol, symbolName: String, span: SourcePosition, role: SymbolOccurrence.Role)(using Context, SDBSymbolNameBuilder): Unit =
     val range = if span.isUnknown then None else
-      val result = extractor.extract(symbolName, span, symbol)
+      val result = positionExtractor.extract(symbolName, span, symbol)
       Some(result)
     
     val occ = SymbolOccurrence(range, symbolName, role)
@@ -334,11 +338,6 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
       occurrences += occ
       generated += occ
 
-  val synthetics = new ListBuffer[Synthetic]()
-  val symbolInfos = new ListBuffer[SymbolInformation]()
-  val occurrences = new ListBuffer[SymbolOccurrence]()
-  val localNames = new mutable.HashSet[String]()
-  private val generated = new mutable.HashSet[SymbolOccurrence]
   override def traverse(tree: Tree): Unit =
 
     val pos = tree.pos
@@ -351,7 +350,7 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
               namedTree match
                 case Left(listValDef) =>
                   listValDef.foreach(namedTree =>
-                    registerDefinition(namedTree.symbol, namedTree.pos, symbolKinds(namedTree), extractor)
+                    registerDefinition(namedTree.symbol, namedTree.pos, symbolKinds(namedTree), positionExtractor)
                     if (!defDef.symbol.isConstructor){
                       if !namedTree.pos.isZeroExtent then
                         registerOccurrence(namedTree.symbol, namedTree.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
@@ -375,7 +374,7 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
               case None =>
               case Some(value) => traverse(value)
             if(!excludeSymbol(namedTree.symbol)){
-              registerDefinition(namedTree.symbol, pos, symbolKinds(namedTree), extractor)
+              registerDefinition(namedTree.symbol, pos, symbolKinds(namedTree), positionExtractor)
             
               if (defDef.symbol.isConstructor) then
                 registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
@@ -396,16 +395,16 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
                       if (!value.pos.isZeroExtent && !packageSymbol.isEmptyPackage){
                           registerOccurrence(packageSymbol, value.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
                       }
-                  
                 case _ =>
+
             extractOwner(c.symbol.owner)
-            registerDefinition(namedTree.symbol, pos, symbolKinds(namedTree), extractor)
+            registerDefinition(namedTree.symbol, pos, symbolKinds(namedTree), positionExtractor)
             if !pos.isZeroExtent then  
               registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
             super.traverse(tree)
               
           case _ =>
-            registerDefinition(namedTree.symbol, pos, symbolKinds(namedTree), extractor)
+            registerDefinition(namedTree.symbol, pos, symbolKinds(namedTree), positionExtractor)
             if !pos.isZeroExtent then  
               registerOccurrence(namedTree.symbol, pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.DEFINITION)
             super.traverse(tree)
@@ -415,8 +414,6 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
           typeIdent.toType match
             case typeRef: TypeRef =>
               val sym = typeRef.optSymbol.get
-              val owner = sym.owner
-              val ownerOwner = sym.owner.owner
               sym.owner match
                 case termSymbol : TermSymbol =>
                   termSymbol.owner match
@@ -450,6 +447,7 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
       case ident: Ident=> 
         registerUseGuarded(ident.symbol, ident.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
         super.traverse(tree)
+
       case select : Select =>
         val qualPos = select.qualifier.pos
         val selectPos = select.pos
@@ -457,12 +455,12 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
           registerOccurrence(select.symbol, select.pos, dotty.tools.dotc.semanticdb.SymbolOccurrence.Role.REFERENCE)
         }
         super.traverse(tree)
+
       case typeApply: TypeApply =>
-        synth.tryFindSynthetic(typeApply).foreach(synthetics.addOne)
+        syntheticExtractor.tryFindSynthetic(typeApply).foreach(synthetics.addOne)
         super.traverse(typeApply)
 
       case apply: Apply =>
-
         apply.fun match
           case ident: Ident =>
             ident.symbol match
@@ -474,14 +472,7 @@ class CustomTreeTraverser(sourceFilePath: String)(using ctx: Context)(using SDBS
       case _ =>
           super.traverse(tree)
   
-  extension (list: List[Either[List[ValDef], List[TypeParam]]])
-    private  inline def isSingleArg = list match
-      case _::Nil => true
-      case _             => false
 
-  extension (tree: DefDef)
-    private def isSetterDef(using Context): Boolean =
-      tree.name.isSetterName && tree.paramLists.isSingleArg
 
   private def symbolKinds(tree: Tree)(using Context): Set[SymbolKind] =
       val symkinds = scala.collection.mutable.HashSet.empty[SymbolKind]

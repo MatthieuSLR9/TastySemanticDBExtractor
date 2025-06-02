@@ -41,6 +41,7 @@ class TastySyntheticsExtractor:
                 s.OriginalTree(tree.pos.range),
                 Some(select.toSemanticId)
               )
+
             case _ =>
               tree.pos.endColumn
               s.OriginalTree(
