@@ -102,9 +102,9 @@ class ExtractSemanticDB private (phaseMode: ExtractSemanticDB.PhaseMode) extends
     ExtractSemanticDB.unitContexts = Some(unitContexts)
     val warnings = ctx.reporter.allWarnings.groupBy(w => w.pos.source)
     
-    /*This is appendDiagnostics is true when we enter ExtractSemanticDB the second time
-    We decide to enter it even without the Yproduce flag as a temporary fix Until we create a new phase
-    for the compiler that exists later on at the same level as appendDiagnostics in order to get the updated context
+    /*
+    Diagnositcs must be inputed here even if we create SemanticDB using TASTy files as
+    the TastyExtractSemanticDB phase happens to early in the compiler to get them there
     */
     
     if (appendDiagnostics)
